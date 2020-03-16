@@ -8,7 +8,6 @@ import java.util.List;
 
 
 public class Server {
-    static final int PORT = 4444;
     private boolean status;
     private ServerSocket serverSocket;
     private List<ClientResource> connectedClients;
@@ -16,13 +15,20 @@ public class Server {
     private class ClientThread implements Runnable {
         private int userId;
         private Socket clientSocket;
+        private Thread runner;
         private final Server server = Server.this;
 
         public ClientThread(int userId, Socket clientSocket) throws IOException {
-            this.userId = userId;
-            this.clientSocket = clientSocket;
-            server.connectedClients.add(new ClientResource(userId, clientSocket.getOutputStream()));
-            System.out.println("Client #" + userId + " connected");
+            if (runner == null) {
+                this.userId = userId;
+                this.clientSocket = clientSocket;
+
+                server.connectedClients.add(new ClientResource(userId, clientSocket.getOutputStream()));
+                runner = new Thread(this);
+                runner.start();
+
+                System.out.println("Client #" + userId + " connected");
+            }
         }
 
         public void run() {
@@ -68,7 +74,7 @@ public class Server {
 
     public Server() {
         try {
-            serverSocket = new ServerSocket(PORT);
+            serverSocket = new ServerSocket(4567);
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Unable to start the server.");
@@ -90,7 +96,6 @@ public class Server {
                 int id = dataInputStream.readInt();
 
                 ClientThread clientThread = new ClientThread(id, listeningSocket);
-                clientThread.run();
             } catch (IOException e) {
                 e.printStackTrace();
             }
