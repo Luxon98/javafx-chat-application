@@ -1,66 +1,66 @@
 package chatclient;
 
-import chatserver.Server;
-
 import java.net.*;
 import java.io.*;
 import java.util.Scanner;
 
 
 public class Client {
-    private Socket socket = null;
-    private DataOutputStream dataOutputStream = null;
-    private DataInputStream dataInputStream = null;
-    boolean exitProgramFlag = false;
+    private Socket socket;
+    private boolean exitProgramFlag;
+    private int userId;
 
     public Client(String address, int port) {
+        exitProgramFlag = false;
+        userId = 1;
         try {
             socket = new Socket(address, port);
             System.out.println("Connected");
-            dataOutputStream = new DataOutputStream(socket.getOutputStream());
-
+            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            dataOutputStream.writeInt(userId);
         } catch (IOException e) {
             System.out.println(e);
         }
 
         listen();
+        readInputAndSendMessages();
+        //exit();
+    }
 
-        Scanner scanner = new Scanner(System.in);
-        String text = "";
-
-        while (true) {
-            try {
-                text = scanner.nextLine();
-                if (text.length() > 0) {
-                    dataOutputStream.writeInt(1);
-                    dataOutputStream.writeUTF(text);
-                } else {
-                    dataOutputStream.writeInt(-1);
-                    exitProgramFlag = true;
-                    break;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
+    private void readInputAndSendMessages() {
         try {
-            dataOutputStream.close();
-            socket.close();
-        } catch (IOException i) {
-            System.out.println(i);
+            Scanner scanner = new Scanner(System.in);
+            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            while (true) {
+                try {
+                    String text = scanner.nextLine();
+                    if (text.length() > 0) {
+                        dataOutputStream.writeInt(1);
+                        dataOutputStream.writeUTF(text);
+                    } else {
+                        dataOutputStream.writeInt(-1);
+                        exitProgramFlag = true;
+                        break;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     private void listen() {
         Thread listenThread = new Thread(() -> {
             try {
-                dataInputStream = new DataInputStream(socket.getInputStream());
+                DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
 
                 while (!exitProgramFlag) {
                     if (dataInputStream.available() > 0) {
+                        int senderId = dataInputStream.readInt();
                         String text = dataInputStream.readUTF();
-                        System.out.println(text);
+                        System.out.println("User #" + senderId + " send to You: " + text);
                     }
                 }
             } catch (Exception e) {
@@ -70,7 +70,11 @@ public class Client {
         listenThread.start();
     }
 
-    public static void main(String args[]) {
-        Client client = new Client("127.0.0.1", 4321);
-    }
+//    private void exit() {
+//        try {
+//            socket.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

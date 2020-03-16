@@ -8,66 +8,61 @@ import java.util.List;
 
 
 public class Server {
-    static final int PORT = 4321;
+    static final int PORT = 4444;
+    private boolean status;
     private ServerSocket serverSocket;
-    private Socket listeningSocket;
-    private List<ClientInfo> connectedClients;
+    private List<ClientResource> connectedClients;
 
     private class ClientThread implements Runnable {
+        private int userId;
         private Socket clientSocket;
-        private DataInputStream dataInputStream;
-        private DataOutputStream dataOutputStream;
         private final Server server = Server.this;
 
-        public ClientThread(Socket clientSocket) {
+        public ClientThread(int userId, Socket clientSocket) throws IOException {
+            this.userId = userId;
             this.clientSocket = clientSocket;
-            server.connectedClients.add(new ClientInfo(1, clientSocket.getInetAddress(), clientSocket.getLocalPort()));
-            //System.out.println(clientSocket.getInetAddress() + ":" + clientSocket.getLocalPort());
+            server.connectedClients.add(new ClientResource(userId, clientSocket.getOutputStream()));
+            System.out.println("Client #" + userId + " connected");
         }
 
         public void run() {
+            DataInputStream dataInputStream;
             try {
                 dataInputStream = new DataInputStream(clientSocket.getInputStream());
-            } catch (IOException e) {
-                return;
-            }
+                while (true) {
+                    try {
+                        int receiverId = dataInputStream.readInt();
 
-            while (true) {
-                try {
-                    int clientId = dataInputStream.readInt();
-                    //System.out.println(clientId);               // REMOVE
-
-                    if (!isDisconnectCommand(clientId)) {
-                        String text = dataInputStream.readUTF();
-                        System.out.println(text);               // REMOVE
-                        send(1, text);
-                    } else {
-                        System.out.println("Client disconnected.");
-                        clientSocket.close();
-                        return;
+                        if (!isDisconnectCommand(receiverId)) {
+                            String text = dataInputStream.readUTF();
+                            System.out.println("Client #" + userId + " send: " + text + " to a client #" + receiverId);
+                            send(receiverId, text);
+                        } else {
+                            System.out.println("Client #" + userId + " disconnected");
+                            connectedClients.removeIf(client -> client.getUserId() == userId);
+                            clientSocket.close();
+                            return;
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                } catch (EOFException e) {
-                    e.printStackTrace();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void send(int receiverId, String message) {
+            ClientResource client = getClient(receiverId);
+            if (client != null) {
+                try {
+                    DataOutputStream dataOutputStream = new DataOutputStream(client.getOutputStream());
+                    dataOutputStream.writeInt(userId);
+                    dataOutputStream.writeUTF(message);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
-        }
-
-        private void send(int userId, String message) {
-//            ClientInfo client = connectedClients.stream()
-//                    .filter(c -> userId == c.getUserId())
-//                    .findAny()
-//                    .orElse(null);
-
-            //if (client != null) {
-            try {
-                dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-                dataOutputStream.writeUTF(message);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            //}
         }
     }
 
@@ -79,6 +74,7 @@ public class Server {
             System.out.println("Unable to start the server.");
         }
 
+        status = true;
         connectedClients = new ArrayList<>();
 
         System.out.println("Server has started properly.\nWaiting for clients...");
@@ -86,16 +82,26 @@ public class Server {
     }
 
     private void listen() {
-        while (true) {
+        while (status) {
             try {
-                listeningSocket = serverSocket.accept();
-                System.out.println("Client connected");         // REMOVE
-                ClientThread clientThread = new ClientThread(listeningSocket);
+                Socket listeningSocket = serverSocket.accept();
+
+                DataInputStream dataInputStream = new DataInputStream(listeningSocket.getInputStream());
+                int id = dataInputStream.readInt();
+
+                ClientThread clientThread = new ClientThread(id, listeningSocket);
                 clientThread.run();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    private ClientResource getClient(int receiverId) {
+        return connectedClients.stream()
+                .filter(connectedClient -> receiverId == connectedClient.getUserId())
+                .findAny()
+                .orElse(null);
     }
 
     private boolean isDisconnectCommand(int clientId) {
