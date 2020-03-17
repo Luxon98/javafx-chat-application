@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<GridPane alignment="center" hgap="10" prefHeight="600.0" prefWidth="600.0" vgap="10" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chatclient.Controller">
+    <columnConstraints>
+        <ColumnConstraints />
+        <ColumnConstraints />
+        <ColumnConstraints />
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints />
+    </rowConstraints>
+    <children>
+        <Pane prefHeight="600.0" prefWidth="600.0" GridPane.columnIndex="2">
+            <children>
+                <Label layoutX="244.0" layoutY="137.0" minHeight="30" minWidth="30" text="Log in" textFill="#eb261c">
+                    <font>
+                        <Font size="24.0" />
+                    </font>
+                </Label>
+                <Label layoutX="67.0" layoutY="217.0" prefHeight="26.0" prefWidth="58.0" style="-fx-font-size: 16;" text="Login:" />
+                <Label layoutX="67.0" layoutY="272.0" style="-fx-font-size: 16;" text="Password:" />
+                <TextField layoutX="201.0" layoutY="217.0" prefHeight="33.0" prefWidth="262.0" style="-fx-font-size: 17;" />
+                <TextField layoutX="201.0" layoutY="266.0" prefHeight="33.0" prefWidth="262.0" style="-fx-font-size: 17;" />
+                <Button layoutX="332.0" layoutY="320.0" mnemonicParsing="false" style="-fx-background-color: #f53141;" text="Log In" textAlignment="CENTER" textFill="WHITE">
+               <effect>
+                  <DropShadow />
+               </effect></Button>
+                <Button layoutX="120.0" layoutY="320.0" mnemonicParsing="false" style="-fx-background-color: #14a33c;" text="Create New Account" textAlignment="CENTER" textFill="WHITE">
+               <effect>
+                  <SepiaTone level="0.72" />
+               </effect></Button>
+            </children>
+        </Pane>
+    </children>
+</GridPane>
