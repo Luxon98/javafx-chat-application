@@ -1,25 +1,73 @@
 package chatclient;
 
+import java.net.*;
+import java.io.*;
 import java.util.Scanner;
 
 
 public class ClientApplication {
-    public static void main(String args[]) {
-        boolean loggedUser = false;
+    private Socket socket;
+    private boolean exitProgramFlag;
+    private int userId;
 
-        Scanner scanner = new Scanner(System.in);
-        while (!loggedUser) {
-            System.out.println("Podaj login: ");
-            String login = scanner.nextLine();
-            System.out.println("Podaj haslo: ");
-            String password = scanner.nextLine();
+    public ClientApplication(String address, int port, int id) {
+        exitProgramFlag = false;
+        userId = id;
 
-            if (Database.isUser(login, password)) {
-                loggedUser = true;
+       // try {
+            //socket = new Socket(address, port);
+            System.out.println("Connected");
+           // DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+           // dataOutputStream.writeInt(userId);
+//        } catch (IOException e) {
+//            System.out.println(e);
+//        }
+
+       // listen();
+       // readInputAndSendMessages();
+    }
+
+    private void readInputAndSendMessages() {
+        try {
+            Scanner scanner = new Scanner(System.in);
+            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            while (true) {
+                try {
+                    String text = scanner.nextLine();
+                    if (text.length() > 0) {
+                        dataOutputStream.writeInt(1);
+                        dataOutputStream.writeUTF(text);
+                    } else {
+                        dataOutputStream.writeInt(-1);
+                        exitProgramFlag = true;
+                        break;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
 
-        System.out.println("CLIENT WINDOW:");
-        Client client = new Client("127.0.0.1", 4567, 1);
+    private void listen() {
+        Thread listenThread = new Thread(() -> {
+            try {
+                DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
+
+                while (!exitProgramFlag) {
+                    if (dataInputStream.available() > 0) {
+                        int senderId = dataInputStream.readInt();
+                        String text = dataInputStream.readUTF();
+                        String username = Database.getLogin(senderId);
+                        System.out.println(username + ": " + text);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        listenThread.start();
     }
 }

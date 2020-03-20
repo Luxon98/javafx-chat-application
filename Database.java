@@ -5,10 +5,10 @@ import java.util.List;
 
 
 public class Database {
-    private static List<User> users = Arrays.asList(new User(1, "roman", "xxx"),
-            new User(2, "kyxy", "123"), new User(3, "malwinka", "qwerty"));
-
-    public Database() { }
+    private static List<User> users = Arrays.asList(
+            new User(1, "roman", "xxx", "roman98@wp.pl"),
+            new User(2, "kyxy", "123", "kyxy@gmail.com"),
+            new User(3, "malwinka", "qwerty", "malwis14@op.pl"));
 
     public static boolean isUser(String login, String password) {
         for (User user : users) {
@@ -35,5 +35,23 @@ public class Database {
             }
         }
         return null;
+    }
+
+    public static boolean isLoginTaken(String login) {
+        for (User user : users) {
+            if (user.getLogin().equals(login)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isEmailTaken(String emailAddress) {
+        for (User user : users) {
+            if (user.getEmailAddress().equals(emailAddress)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

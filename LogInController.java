@@ -10,6 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+
 import java.io.IOException;
 
 
@@ -24,11 +25,7 @@ public class LogInController {
     @FXML
     private Button newAccountButton;
 
-    @FXML
-    public void logIn(ActionEvent event) {
-//        String login = loginTextField.getText();
-//        String password = passwordTextField.getText();
-
+    private void showLoginFailedAlert() {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("User not found");
         alert.setHeaderText(null);
@@ -39,6 +36,33 @@ public class LogInController {
 
         alert.showAndWait();
     }
+
+    private void setChatScene() throws IOException {
+        Stage stage = (Stage) newAccountButton.getScene().getWindow();
+        Parent root = FXMLLoader.load(getClass().getResource("chat.fxml"));
+
+        Scene scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    @FXML
+    public void logIn(ActionEvent event) {
+        String login = loginTextField.getText();
+        String password = passwordTextField.getText();
+
+        if (!Database.isUser(login, password)) {
+            showLoginFailedAlert();
+        }
+
+        try {
+            Client.getInstance().setUsername(login);
+            setChatScene();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @FXML
     public void setSignUpScene(ActionEvent event) throws IOException {
