@@ -1,5 +1,6 @@
 package chatclient;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -53,5 +54,15 @@ public class Database {
             }
         }
         return false;
+    }
+
+    public static List<User> getFriends(int id) {
+        List<User> list = new ArrayList<>();
+        for (User user : users) {
+            if (user.getId() != id) {
+                list.add(user);
+            }
+        }
+        return list;
     }
 }

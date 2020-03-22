@@ -8,7 +8,7 @@
     <children>
         <Pane fx:id="applicationPane" prefHeight="600.0" prefWidth="800.0" style="-fx-background-color: #e6f4f5;" GridPane.columnIndex="2">
             <children>
-                <Pane prefHeight="600.0" prefWidth="200.0" style="-fx-background-color: #43425d;">
+                <Pane fx:id="friendsListPane" prefHeight="600.0" prefWidth="200.0" style="-fx-background-color: #43425d;">
                     <children>
                         <Pane prefHeight="80.0" prefWidth="200.0" style="-fx-background-color: #3d3c57;">
                             <children>
@@ -30,5 +30,13 @@
             </children>
         </Pane>
     </children>
+   <columnConstraints>
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints />
+   </rowConstraints>
 
 </GridPane>

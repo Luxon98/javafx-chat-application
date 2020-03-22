@@ -1,18 +1,21 @@
 package chatclient;
 
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-
+import javafx.application.Platform;
 import java.net.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class ClientApplication {
     private Socket socket;
     private int userId;
+    private ChatController chatController;
+    private List<User> friendsList;
 
     public ClientApplication(String address, int port, int id) {
         userId = id;
+        friendsList = new ArrayList<>(Database.getFriends(userId));
 
         try {
             socket = new Socket(address, port);
@@ -58,13 +61,10 @@ public class ClientApplication {
                     if (dataInputStream.available() > 0) {
                         int senderId = dataInputStream.readInt();
                         String text = dataInputStream.readUTF();
-                        String username = Database.getLogin(senderId);
-                        System.out.println(username + ": " + text);
 
-                        FXMLLoader loader = new FXMLLoader(getClass().getResource("chat.fxml"));
-                        Parent root = loader.load();
-                        ChatController c = loader.getController();
-                        c.addTextLabel();
+                        Platform.runLater(() -> {
+                            chatController.drawReceivedMessageLabel(text);
+                        });
                     }
                 }
                 sendCommand(-1);
@@ -73,5 +73,13 @@ public class ClientApplication {
             }
         });
         listenThread.start();
+    }
+
+    public void setChatController(ChatController chatController) {
+        this.chatController = chatController;
+    }
+
+    public List<User> getFriendsList() {
+        return friendsList;
     }
 }

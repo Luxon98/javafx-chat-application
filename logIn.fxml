@@ -8,7 +8,7 @@
           xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
           fx:controller="chatclient.LogInController">
     <children>
-        <Pane fx:id="logInPane" prefHeight="600.0" prefWidth="600.0" style="-fx-background-color: #f5f5a4;"
+        <Pane fx:id="logInPane" prefHeight="600.0" prefWidth="600.0" style="-fx-background-color: #eef0af;"
               GridPane.columnIndex="2">
             <children>
                 <Label fx:id="loginTitleLabel" layoutX="240.0" layoutY="95.0" minHeight="30" minWidth="30"
@@ -21,8 +21,9 @@
                        text="Password:" textFill="#4f4ad3"/>
                 <TextField fx:id="loginTextField" layoutX="205.0" layoutY="207.0" prefHeight="33.0" prefWidth="262.0"
                            style="-fx-font-size: 17;"/>
-                <PasswordField fx:id="passwordTextField" layoutX="205.0" layoutY="256.0" prefHeight="33.0"
-                               prefWidth="262.0" style="-fx-font-size: 17;"/>
+                <PasswordField fx:id="passwordTextField" layoutX="205.0" layoutY="256.0"
+                               onKeyPressed="#handlePasswordFieldKey"
+                               prefHeight="33.0" prefWidth="262.0" style="-fx-font-size: 17;"/>
                 <Button fx:id="logInButton" layoutX="370.0" layoutY="318.0" mnemonicParsing="false" onAction="#logIn"
                         prefHeight="26.0" prefWidth="67.0"
                         style="-fx-background-color: #4a852e; -fx-font-size: 14; -fx-border-color: #3a3d39;"

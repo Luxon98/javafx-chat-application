@@ -9,6 +9,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -35,6 +37,7 @@ public class LogInController {
         alert.setY(passwordTextField.getLayoutY());
 
         alert.showAndWait();
+        passwordTextField.setText(null);
     }
 
     private void setChatScene() throws IOException {
@@ -47,12 +50,13 @@ public class LogInController {
     }
 
     @FXML
-    public void logIn(ActionEvent event) {
+    public void logIn() {
         String login = loginTextField.getText();
         String password = passwordTextField.getText();
 
         if (!Database.isUser(login, password)) {
             showLoginFailedAlert();
+            return;
         }
 
         try {
@@ -63,7 +67,6 @@ public class LogInController {
         }
     }
 
-
     @FXML
     public void setSignUpScene(ActionEvent event) throws IOException {
         Stage stage = (Stage) newAccountButton.getScene().getWindow();
@@ -72,5 +75,12 @@ public class LogInController {
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.show();
+    }
+
+    @FXML
+    public void handlePasswordFieldKey(KeyEvent event) {
+        if (event.getCode().equals(KeyCode.ENTER)) {
+            logIn();
+        }
     }
 }
