@@ -1,21 +1,22 @@
 package chatclient;
 
-import javafx.application.Platform;
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 
 public class ClientApplication {
     private Socket socket;
     private int userId;
-    private ChatController chatController;
     private List<User> friendsList;
+    private Stack<String> messagesStack;
 
     public ClientApplication(String address, int port, int id) {
         userId = id;
         friendsList = new ArrayList<>(Database.getFriends(userId));
+        messagesStack = new Stack<>();
 
         try {
             socket = new Socket(address, port);
@@ -62,9 +63,7 @@ public class ClientApplication {
                         int senderId = dataInputStream.readInt();
                         String text = dataInputStream.readUTF();
 
-                        Platform.runLater(() -> {
-                            chatController.drawReceivedMessageLabel(text);
-                        });
+                        messagesStack.push(text);
                     }
                 }
                 sendCommand(-1);
@@ -75,11 +74,16 @@ public class ClientApplication {
         listenThread.start();
     }
 
-    public void setChatController(ChatController chatController) {
-        this.chatController = chatController;
-    }
-
     public List<User> getFriendsList() {
         return friendsList;
+    }
+
+    public String getMessage() {
+        String message = messagesStack.pop();
+        return message;
+    }
+
+    public boolean containsMessage() {
+        return (!messagesStack.empty());
     }
 }
