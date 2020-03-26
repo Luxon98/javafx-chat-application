@@ -1,10 +1,9 @@
 package chatclient;
 
-import com.sun.javafx.tk.FontLoader;
-import com.sun.javafx.tk.Toolkit;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -13,7 +12,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
-
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -24,18 +22,23 @@ public class ChatController {
     private Label usernameLabel;
 
     @FXML
+    private Label interlocutorLabel;
+
+    @FXML
     private TextArea messageTextArea;
 
     @FXML
     private Pane messagesPane;
 
     @FXML
+    private ScrollPane messagesScrollPane;
+
+    @FXML
     Pane friendsListPane;
 
     private ClientApplication clientApplication;
     //private int currentInterlocutorId = 1;
-    private int currentSentMessagesCounter = 0;
-    private int currentReceivedMessagesCounter = 0;
+    private int currentMessagesCounter;
     private AtomicBoolean inUse = new AtomicBoolean();
 
     @FXML
@@ -43,6 +46,8 @@ public class ChatController {
         int id = Database.getId(Client.getInstance().getUsername());
         usernameLabel.setText(Client.getInstance().getUsername());
         clientApplication = new ClientApplication("127.0.0.1", 4567, id);
+        currentMessagesCounter = 0;
+        messagesScrollPane.setContent(messagesPane);
         drawFriendsPanel();
         checkForMessages();
     }
@@ -76,8 +81,7 @@ public class ChatController {
     @FXML
     private void removeMessages() {
         messagesPane.getChildren().clear();
-        currentSentMessagesCounter = 0;
-        currentReceivedMessagesCounter = 0;
+        currentMessagesCounter = 0;
     }
 
     private void checkForMessages() {
@@ -97,13 +101,13 @@ public class ChatController {
 
     private void drawFriendsPanel() {
         List<User> friendsList = clientApplication.getFriendsList();
-        int positionY = 80;
+        int positionY = 65;
         for (User user : friendsList) {
             Pane pane = new Pane();
-            pane.setPrefHeight(80);
+            pane.setPrefHeight(55);
             pane.setPrefWidth(200);
             pane.setLayoutY(positionY);
-            pane.setStyle("-fx-border-color: aliceblue");
+            pane.setStyle("-fx-border-color: aliceblue; -fx-border-color: #a2a3a2; -fx-border-width: 0 0 1 0;");
 
             Label label = new Label();
             label.setLayoutX(30);
@@ -112,8 +116,13 @@ public class ChatController {
             label.setText(user.getLogin());
 
             pane.getChildren().add(label);
+            pane.setOnMouseClicked(t -> {
+                interlocutorLabel.setText(label.getText());
+                removeMessages();
+                messagesPane.setPrefHeight(485);
+            });
             friendsListPane.getChildren().add(pane);
-            positionY += 80;
+            positionY += 55;
         }
     }
 
@@ -124,14 +133,19 @@ public class ChatController {
         label.setFont(new Font("Arial", 13));
         label.setTextAlignment(TextAlignment.CENTER);
         label.setText(message);
-        label.setLayoutY(20 + currentSentMessagesCounter * 70);
+        label.setLayoutY(10 + currentMessagesCounter * 35);
 
         Text text = new Text(label.getText());
         text.setFont(label.getFont());
-        label.setLayoutX(570 - text.getBoundsInLocal().getWidth());
+        label.setLayoutX(553 - text.getBoundsInLocal().getWidth());
 
         messagesPane.getChildren().add(label);
-        ++currentSentMessagesCounter;
+        ++currentMessagesCounter;
+
+        if (currentMessagesCounter >= 13) {
+            messagesPane.setPrefHeight(messagesPane.getHeight() + 35);
+            messagesScrollPane.setVvalue(1.0);
+        }
     }
 
     public void drawReceivedMessageLabel(String message) {
@@ -144,9 +158,14 @@ public class ChatController {
         label.setText(message);
 
         label.setLayoutX(25);
-        label.setLayoutY(55 + currentReceivedMessagesCounter * 70);
+        label.setLayoutY(10 + currentMessagesCounter * 35);
 
         messagesPane.getChildren().add(label);
-        ++currentReceivedMessagesCounter;
+        ++currentMessagesCounter;
+
+        if (currentMessagesCounter >= 13) {
+            messagesPane.setPrefHeight(messagesPane.getHeight() + 35);
+            messagesScrollPane.setVvalue(1.0);
+        }
     }
 }
