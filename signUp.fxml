@@ -8,52 +8,60 @@
           xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
           fx:controller="chatclient.SignUpController">
     <children>
-        <Pane fx:id="signUpPane" prefHeight="600.0" prefWidth="600.0" style="-fx-background-color: #f5f5a4;"
+        <Pane fx:id="signUpPane" prefHeight="600.0" prefWidth="600.0" style="-fx-background-color: #3c3f41;"
               GridPane.columnIndex="2">
             <children>
                 <Label fx:id="signupTitleLabel" layoutX="235.0" layoutY="95.0" minHeight="30" minWidth="30"
-                       style="-fx-font-size: 33;" text="Sign Up" textFill="#796b74">
+                       style="-fx-font-size: 33;" text="Sign Up" textFill="#c7d5da">
                 </Label>
                 <Label fx:id="newLoginTextLabel" layoutX="60.0" layoutY="210.0" prefHeight="26.0" prefWidth="58.0"
-                       style="-fx-font-size: 16;" text="Login:" textFill="#4f4ad3">
+                       style="-fx-font-size: 16;" text="Login:" textFill="#e4e3ee">
                 </Label>
                 <Label fx:id="newPasswordTextLabel" layoutX="60.0" layoutY="263.0" style="-fx-font-size: 16;"
-                       text="Password:" textFill="#4f4ad3"/>
+                       text="Password:" textFill="#e4e3ee"/>
                 <Label fx:id="confirmPasswordTextLabel" layoutX="60.0" layoutY="311.0" style="-fx-font-size: 16;"
-                       text="Confirm password:" textFill="#4f4ad3"/>
+                       text="Confirm password:" textFill="#e4e3ee"/>
                 <Label fx:id="emailTextLabel" layoutX="60.0" layoutY="356.0" style="-fx-font-size: 16;"
-                       text="E-mail address:" textFill="#4f4ad3"/>
+                       text="E-mail address:" textFill="#e4e3ee"/>
 
                 <TextField fx:id="loginTextField" layoutX="245.0" layoutY="206.0" prefHeight="33.0" prefWidth="262.0"
-                           style="-fx-font-size: 17;"/>
+                           style="-fx-font-size: 17; -fx-background-color: #c4c4c4; -fx-text-fill: #6e1717;"/>
                 <PasswordField fx:id="passwordField" layoutX="245.0" layoutY="256.0" prefHeight="33.0" prefWidth="262.0"
-                               style="-fx-font-size: 17;"/>
+                               style="-fx-font-size: 17; -fx-background-color: #c4c4c4; -fx-text-fill: #6e1717;"/>
                 <TextField fx:id="passwordTextField" layoutX="245.0" layoutY="256.0" prefHeight="33.0" prefWidth="262.0"
-                           style="-fx-font-size: 17;" visible="false"/>
+                           style="-fx-font-size: 17; -fx-background-color: #c4c4c4; -fx-text-fill: #6e1717;"
+                           visible="false"/>
                 <PasswordField fx:id="confirmPasswordField" layoutX="245.0" layoutY="304.0" prefHeight="33.0"
-                               prefWidth="262.0" style="-fx-font-size: 17;"/>
+                               prefWidth="262.0"
+                               style="-fx-font-size: 17; -fx-background-color: #c4c4c4; -fx-text-fill: #6e1717;"/>
                 <TextField fx:id="confirmPasswordTextField" layoutX="245.0" layoutY="304.0" prefHeight="33.0"
-                           prefWidth="262.0" style="-fx-font-size: 17;" visible="false"/>
+                           prefWidth="262.0"
+                           style="-fx-font-size: 17; -fx-background-color: #c4c4c4; -fx-text-fill: #6e1717;"
+                           visible="false"/>
                 <TextField fx:id="emailTextField" layoutX="245.0" layoutY="352.0" prefHeight="33.0" prefWidth="262.0"
-                           style="-fx-font-size: 17;"/>
+                           style="-fx-font-size: 17; -fx-background-color: #c4c4c4; -fx-text-fill: #6e1717;"/>
 
                 <Button fx:id="backButton" layoutX="96.0" layoutY="458.0" mnemonicParsing="false"
-                        onAction="#setLogInScene" style="-fx-background-color: #f03030; -fx-border-color: #3a3d39;"
-                        text="Back" textAlignment="CENTER" textFill="#fcfcfc">
+                        onAction="#setLogInScene" onMouseEntered="#changeBackButtonStyle"
+                        onMouseExited="#restoreBackButtonStyle"
+                        style="-fx-background-color: #0e782e; -fx-border-color: #3a3d39; -fx-background-radius: 10; -fx-border-radius: 10"
+                        text="Back"
+                        textAlignment="CENTER" textFill="#fcfcfc">
                     <effect>
                         <DropShadow/>
                     </effect>
                 </Button>
                 <Button fx:id="registerButton" layoutX="376.0" layoutY="457.0" mnemonicParsing="false"
-                        onAction="#registerAccount" prefHeight="30.0" prefWidth="101.0"
-                        style="-fx-background-color: #a976b5; -fx-font-size: 14; -fx-border-color: #3a3d39;"
+                        onAction="#registerAccount" onMouseEntered="#changeRegisterButtonStyle"
+                        onMouseExited="#restoreRegisterButtonStyle" prefHeight="30.0" prefWidth="101.0"
+                        style="-fx-background-color: #389af5; -fx-font-size: 14; -fx-border-color: #3a3d39; -fx-background-radius: 10; -fx-border-radius: 10;"
                         text="Register" textAlignment="CENTER" textFill="WHITE">
                     <effect>
                         <DropShadow height="71.09" radius="35.425" width="72.61"/>
                     </effect>
                 </Button>
                 <CheckBox fx:id="passwordCheckBox" layoutX="368.0" layoutY="403.0" mnemonicParsing="false"
-                          onAction="#changeTextFields" text="Show password" textFill="#ab4848"/>
+                          onAction="#changeTextFields" text="Show password" textFill="#d68585"/>
             </children>
         </Pane>
     </children>
