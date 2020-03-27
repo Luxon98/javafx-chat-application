@@ -27,6 +27,9 @@ public class LogInController {
     @FXML
     private Button newAccountButton;
 
+    @FXML
+    private Button loginButton;
+
     private void showLoginFailedAlert() {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("User not found");
@@ -82,5 +85,25 @@ public class LogInController {
         if (event.getCode().equals(KeyCode.ENTER)) {
             logIn();
         }
+    }
+
+    @FXML
+    public void changeNewAccountButtonStyle() {
+        newAccountButton.setStyle("-fx-background-color: #b2d6eb; -fx-border-color: #3a3d39; -fx-text-fill: #4d190b; -fx-background-radius: 8; -fx-border-radius: 8");
+    }
+
+    @FXML
+    public void restoreNewAccountButtonStyle() {
+        newAccountButton.setStyle("-fx-background-color: #e89910; -fx-border-color: #3a3d39; -fx-text-fill: #000000; -fx-background-radius: 8; -fx-border-radius: 8");
+    }
+
+    @FXML
+    public void changeLoginButtonStyle() {
+        loginButton.setStyle("-fx-background-color: #3e4eab; -fx-font-size: 14; -fx-border-color: #3a3d39; -fx-background-radius: 9; -fx-border-radius: 9");
+    }
+
+    @FXML
+    public void restoreLoginButtonStyle() {
+        loginButton.setStyle("-fx-background-color: #53adb5; -fx-font-size: 14; -fx-border-color: #3a3d39; -fx-background-radius: 9; -fx-border-radius: 9");
     }
 }

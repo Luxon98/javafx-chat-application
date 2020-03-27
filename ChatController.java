@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
@@ -12,6 +13,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import javafx.scene.image.Image ;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -34,8 +36,10 @@ public class ChatController {
     private ScrollPane messagesScrollPane;
 
     @FXML
-    Pane friendsListPane;
+    private Pane friendsListPane;
 
+
+    private Image[] images = new Image[2];
     private ClientApplication clientApplication;
     //private int currentInterlocutorId = 1;
     private int currentMessagesCounter;
@@ -44,10 +48,10 @@ public class ChatController {
     @FXML
     public void initialize() {
         int id = Database.getId(Client.getInstance().getUsername());
-        usernameLabel.setText(Client.getInstance().getUsername());
         clientApplication = new ClientApplication("127.0.0.1", 4567, id);
         currentMessagesCounter = 0;
-        messagesScrollPane.setContent(messagesPane);
+        loadImages();
+        drawUserPanel();
         drawFriendsPanel();
         checkForMessages();
     }
@@ -97,6 +101,19 @@ public class ChatController {
             }
         });
         thread.start();
+    }
+
+    private void loadImages() {
+        images[0] = new Image("file:images/haze.png");
+        images[1] = new Image("file:images/default_avatar.png");
+    }
+
+    private void drawUserPanel() {
+        ImageView imageView = new ImageView(images[1]);
+        imageView.setLayoutX(18);
+        imageView.setLayoutY(12);
+        friendsListPane.getChildren().add(imageView);
+        usernameLabel.setText(Client.getInstance().getUsername());
     }
 
     private void drawFriendsPanel() {
