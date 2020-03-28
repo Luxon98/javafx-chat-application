@@ -41,7 +41,7 @@ public class ChatController {
 
     private Image[] images = new Image[2];
     private ClientApplication clientApplication;
-    //private int currentInterlocutorId = 1;
+    private int currentInterlocutorId;
     private int currentMessagesCounter;
     private AtomicBoolean inUse = new AtomicBoolean();
 
@@ -50,6 +50,7 @@ public class ChatController {
         int id = Database.getId(Client.getInstance().getUsername());
         clientApplication = new ClientApplication("127.0.0.1", 4567, id);
         currentMessagesCounter = 0;
+        currentInterlocutorId = id;
         loadImages();
         drawUserPanel();
         drawFriendsPanel();
@@ -60,14 +61,14 @@ public class ChatController {
     private void sendMessage() {
         String message = messageTextArea.getText();
         if (message != null) {
-            clientApplication.sendMessage(1, message);
+            clientApplication.sendMessage(currentInterlocutorId, message);
             messageTextArea.setText(null);
 
             if (message.length() > 30) {
                 message = message.substring(0, 30) + "\n" + message.substring(30);
             }
 
-            drawSentMessageLabel(message);
+            drawMessageLabel(message, false);
         }
     }
 
@@ -94,7 +95,7 @@ public class ChatController {
                 if (clientApplication.containsMessage() && inUse.compareAndSet(false, true)) {
                     String message = clientApplication.getMessage();
                     Platform.runLater(() -> {
-                        drawReceivedMessageLabel(message);
+                        drawMessageLabel(message, true);
                     });
                     inUse.set(false);
                 }
@@ -135,6 +136,7 @@ public class ChatController {
             pane.getChildren().add(label);
             pane.setOnMouseClicked(t -> {
                 interlocutorLabel.setText(label.getText());
+                currentInterlocutorId = user.getId();
                 removeMessages();
                 messagesPane.setPrefHeight(485);
             });
@@ -143,9 +145,9 @@ public class ChatController {
         }
     }
 
-    private void drawSentMessageLabel(String message) {
+    private void drawMessageLabel(String message, boolean isReceived) {
         Label label = new Label();
-        label.setStyle("-fx-background-color: #05b529; -fx-padding: 3 3 3 3;");
+        label.setStyle("-fx-background-color: #05b529; -fx-padding: 3 3 3 3; -fx-background-radius: 3;");
         label.setPrefHeight(message.length() > 30 ? 46 : 23);
         label.setFont(new Font("Arial", 13));
         label.setTextAlignment(TextAlignment.CENTER);
@@ -154,28 +156,7 @@ public class ChatController {
 
         Text text = new Text(label.getText());
         text.setFont(label.getFont());
-        label.setLayoutX(553 - text.getBoundsInLocal().getWidth());
-
-        messagesPane.getChildren().add(label);
-        ++currentMessagesCounter;
-
-        if (currentMessagesCounter >= 13) {
-            messagesPane.setPrefHeight(messagesPane.getHeight() + 35);
-            messagesScrollPane.setVvalue(1.0);
-        }
-    }
-
-    public void drawReceivedMessageLabel(String message) {
-        Label label = new Label();
-        label.setStyle("-fx-background-color: #9752ff; -fx-padding: 3 3 3 3;");
-        label.setTextFill(Color.WHITE);
-        label.setPrefHeight(message.length() > 30 ? 46 : 23);
-        label.setFont(new Font("Arial", 13));
-        label.setTextAlignment(TextAlignment.CENTER);
-        label.setText(message);
-
-        label.setLayoutX(25);
-        label.setLayoutY(10 + currentMessagesCounter * 35);
+        label.setLayoutX(isReceived ? 25 : 553 - text.getBoundsInLocal().getWidth());
 
         messagesPane.getChildren().add(label);
         ++currentMessagesCounter;
