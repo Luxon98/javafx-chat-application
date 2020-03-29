@@ -2,16 +2,15 @@ package chatclient;
 
 import java.net.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
+import static chatclient.Command.*;
 
 
 public class ClientApplication {
-    private Socket socket;
     private int userId;
+    private Socket socket;
     private List<User> friendsList;
-    private Stack<String> messagesStack;
+    private Stack<Message> messagesStack;
 
     public ClientApplication(String address, int port, int id) {
         userId = id;
@@ -21,6 +20,7 @@ public class ClientApplication {
         try {
             socket = new Socket(address, port);
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            dataOutputStream.writeInt(CONNECT);
             dataOutputStream.writeInt(userId);
         } catch (IOException e) {
             e.printStackTrace();
@@ -30,27 +30,23 @@ public class ClientApplication {
     }
 
     public void sendMessage(int id, String message) {
-        if (id > 0) {
-            try {
-                DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-
-                dataOutputStream.writeInt(id);
-                dataOutputStream.writeUTF(message);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try {
+            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            dataOutputStream.writeInt(MESSAGE);
+            dataOutputStream.writeInt(id);
+            dataOutputStream.writeUTF(message);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
     }
 
     private void sendCommand(int command) {
-        if (command < 0) {
-            try {
-                DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-                dataOutputStream.writeInt(-1);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try {
+            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            dataOutputStream.writeInt(command);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -59,14 +55,14 @@ public class ClientApplication {
             try {
                 DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
                 while (!Client.getInstance().isProgramClosed()) {
-                    if (dataInputStream.available() > 0) {
+                    if (dataInputStream.available() > 0 && dataInputStream.readInt() == MESSAGE) {
                         int senderId = dataInputStream.readInt();
                         String text = dataInputStream.readUTF();
 
-                        messagesStack.push(text);
+                        messagesStack.push(new Message(senderId, text));
                     }
                 }
-                sendCommand(-1);
+                sendCommand(DISCONNECT);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -78,9 +74,8 @@ public class ClientApplication {
         return friendsList;
     }
 
-    public String getMessage() {
-        String message = messagesStack.pop();
-        return message;
+    public Message getMessage() {
+        return messagesStack.pop();
     }
 
     public boolean containsMessage() {
