@@ -45,12 +45,17 @@ public class Server {
                             int receiverId = dataInputStream.readInt();
                             String text = dataInputStream.readUTF();
                             System.out.println("Client #" + userId + " send: " + text + " to a client #" + receiverId);
-                            send(receiverId, text);
-                        } else if (command == DISCONNECT) {
+                            send(receiverId, userId, text);
+                        }
+                        else if (command == DISCONNECT) {
                             System.out.println("Client #" + userId + " disconnected");
                             connectedClients.removeIf(client -> client.getUserId() == userId);
                             clientSocket.close();
                             return;
+                        }
+                        else if (command == TEST) {
+                            System.out.println("CLient #" + userId + " - test");
+                            send(userId, 2,"test");
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -61,13 +66,13 @@ public class Server {
             }
         }
 
-        private void send(int receiverId, String message) {
+        private void send(int receiverId, int senderId, String message) {
             ClientResource client = getClient(receiverId);
             if (client != null) {
                 try {
                     DataOutputStream dataOutputStream = new DataOutputStream(client.getOutputStream());
                     dataOutputStream.writeInt(MESSAGE);
-                    dataOutputStream.writeInt(userId);
+                    dataOutputStream.writeInt(senderId);
                     dataOutputStream.writeUTF(message);
                 } catch (IOException e) {
                     e.printStackTrace();

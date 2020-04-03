@@ -15,6 +15,8 @@ import javafx.scene.image.Image;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static chatclient.Command.TEST;
+
 
 public class ChatController {
 
@@ -36,12 +38,13 @@ public class ChatController {
     @FXML
     private Pane friendsListPane;
 
+    private Pane[] friendsPanes;
+    private Image[] images;
     private ClientApplication clientApplication;
+    private AtomicBoolean inUse;
     private int currentInterlocutorId;
     private int currentMessagesCounter;
-    private AtomicBoolean inUse;
-    private Image[] images;
-    private Pane[] friendsPanes;
+
 
     @FXML
     public void initialize() {
@@ -69,11 +72,6 @@ public class ChatController {
 
             drawMessageLabel(message, false);
         }
-
-        ImageView img = new ImageView(images[0]);
-        img.setLayoutX(20);
-        img.setLayoutY(20);
-        friendsPanes[1].getChildren().add(img);
     }
 
     @FXML
@@ -93,6 +91,14 @@ public class ChatController {
         currentMessagesCounter = 0;
     }
 
+    @FXML
+    private void test() {
+        clientApplication.sendCommand(TEST);
+
+        ImageView iw = (ImageView) friendsPanes[0].lookup("#statusImg");
+        iw.setImage(images[2]);
+    }
+
     private void checkForMessages() {
         Thread thread = new Thread(() -> {
             while (!Client.getInstance().isProgramClosed()) {
@@ -105,7 +111,12 @@ public class ChatController {
                     }
                     else {
                         //wyslij do bazy
-                        //narysuj koperte
+
+                        int index = clientApplication.getListIndex(message.getSenderId());
+                        if (index != -1) {
+                            ImageView iw = (ImageView) friendsPanes[0].lookup("#messageImg");
+                            iw.setVisible(true);
+                        }
                     }
                     inUse.set(false);
                 }
@@ -145,19 +156,35 @@ public class ChatController {
             img.setLayoutX(18);
             img.setLayoutY(12);
 
+            ImageView messageImg = new ImageView(images[0]);
+            messageImg.setLayoutX(150);
+            messageImg.setLayoutY(16);
+            messageImg.setId("messageImg");
+            messageImg.setVisible(false);
+
+
+            ImageView statusImg = new ImageView(images[3]);
+            statusImg.setLayoutX(38);
+            statusImg.setLayoutY(31);
+            statusImg.setId("statusImg");
+
+
             Label label = new Label();
             label.setLayoutX(53);
             label.setLayoutY(16);
             label.setTextFill(Color.WHITE);
             label.setText(user.getLogin());
 
+            friendsPanes[index].getChildren().add(messageImg);
             friendsPanes[index].getChildren().add(img);
+            friendsPanes[index].getChildren().add(statusImg);
             friendsPanes[index].getChildren().add(label);
             friendsPanes[index].setOnMouseClicked(t -> {
                 interlocutorLabel.setText(label.getText());
                 currentInterlocutorId = user.getId();
                 removeMessages();
                 messagesPane.setPrefHeight(485);
+                messageImg.setVisible(false);
             });
             friendsListPane.getChildren().add(friendsPanes[index]);
             positionY += 55;

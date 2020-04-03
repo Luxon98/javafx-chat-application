@@ -41,7 +41,7 @@ public class ClientApplication {
 
     }
 
-    private void sendCommand(int command) {
+    public void sendCommand(int command) {
         try {
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
             dataOutputStream.writeInt(command);
@@ -70,15 +70,24 @@ public class ClientApplication {
         listenThread.start();
     }
 
+    public int getListIndex(int id) {
+        for (int i = 0; i < friendsList.size(); ++i) {
+            if (friendsList.get(i).getId() == id) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public List<User> getFriendsList() {
         return friendsList;
     }
 
-    public Message getMessage() {
-        return messagesStack.pop();
-    }
-
     public boolean containsMessage() {
         return (!messagesStack.empty());
+    }
+
+    public Message getMessage() {
+        return messagesStack.pop();
     }
 }
