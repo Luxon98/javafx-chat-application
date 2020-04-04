@@ -2,6 +2,8 @@ package chatclient;
 
 import java.net.*;
 import java.io.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import static chatclient.Command.*;
 
@@ -9,7 +11,7 @@ import static chatclient.Command.*;
 public class ClientApplication {
     private int userId;
     private Socket socket;
-    private List<User> friendsList;
+    private List<Friend> friendsList;
     private Stack<Message> messagesStack;
 
     public ClientApplication(String address, int port, int id) {
@@ -27,6 +29,58 @@ public class ClientApplication {
         }
 
         listen();
+        checkFriendsStatuses();
+    }
+
+    private void listen() {
+        Thread listenThread = new Thread(() -> {
+            try {
+                DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
+                while (!Client.getInstance().isProgramClosed()) {
+                    if (dataInputStream.available() > 0) {
+                        int command = dataInputStream.readInt();
+                        if (command == MESSAGE) {
+                            int senderId = dataInputStream.readInt();
+                            String text = dataInputStream.readUTF();
+
+                            messagesStack.push(new Message(senderId, text));
+                        }
+                        else if (command == FRIENDS_STATUSES) {
+                            for (int i = 0; i < friendsList.size(); ++i) {
+                                friendsList.get(i).setActiveStatus(dataInputStream.readBoolean());
+                            }
+                        }
+                    }
+                }
+                disconnect();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        listenThread.start();
+    }
+
+    private void checkFriendsStatuses() {
+        Thread thread = new Thread(() -> {
+            try {
+                Instant start = Instant.now();
+                DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+                while (!Client.getInstance().isProgramClosed()) {
+                    Instant finish = Instant.now();
+                    if (Duration.between(start, finish).toMillis() > 15000) {
+                        dataOutputStream.writeInt(FRIENDS_STATUSES);
+                        dataOutputStream.writeInt(friendsList.size());
+                        for (int i = 0; i < friendsList.size(); ++i) {
+                            dataOutputStream.writeInt(friendsList.get(i).getId());
+                        }
+                        start = finish;
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        thread.start();
     }
 
     public void sendMessage(int id, String message) {
@@ -41,33 +95,23 @@ public class ClientApplication {
 
     }
 
-    public void sendCommand(int command) {
+    private void disconnect() {
         try {
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-            dataOutputStream.writeInt(command);
+            dataOutputStream.writeInt(DISCONNECT);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void listen() {
-        Thread listenThread = new Thread(() -> {
-            try {
-                DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
-                while (!Client.getInstance().isProgramClosed()) {
-                    if (dataInputStream.available() > 0 && dataInputStream.readInt() == MESSAGE) {
-                        int senderId = dataInputStream.readInt();
-                        String text = dataInputStream.readUTF();
-
-                        messagesStack.push(new Message(senderId, text));
-                    }
-                }
-                sendCommand(DISCONNECT);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-        listenThread.start();
+    // TO REMOVE
+    public void sendTest() {
+        try {
+            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            dataOutputStream.writeInt(TEST);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public int getListIndex(int id) {
@@ -79,7 +123,7 @@ public class ClientApplication {
         return -1;
     }
 
-    public List<User> getFriendsList() {
+    public List<Friend> getFriendsList() {
         return friendsList;
     }
 
@@ -89,5 +133,11 @@ public class ClientApplication {
 
     public Message getMessage() {
         return messagesStack.pop();
+    }
+
+    public Boolean[] getFriendsStatuses() {
+        return friendsList.stream()
+                .map(Friend::isActive)
+                .toArray(Boolean[]::new);
     }
 }

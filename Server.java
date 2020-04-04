@@ -53,6 +53,15 @@ public class Server {
                             clientSocket.close();
                             return;
                         }
+                        else if (command == FRIENDS_STATUSES) {
+                            int length = dataInputStream.readInt();
+                            int[] arr = new int[length];
+                            for (int i = 0; i < length; ++i) {
+                                arr[i] = dataInputStream.readInt();
+                            }
+                            sendFriendsStatuses(arr);
+                            System.out.println("CLient #" + userId + " - friends statuses send");
+                        }
                         else if (command == TEST) {
                             System.out.println("CLient #" + userId + " - test");
                             send(userId, 2,"test");
@@ -77,6 +86,27 @@ public class Server {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            }
+        }
+
+        private void sendFriendsStatuses(int[] arr) {
+            try {
+                DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
+                boolean[] statuses = new boolean[arr.length];
+                for (int i = 0; i < connectedClients.size(); ++i) {
+                    for (int j = 0; j < arr.length; ++j) {
+                        if (arr[j] == connectedClients.get(i).getUserId()) {
+                            statuses[j] = true;
+                        }
+                    }
+                }
+
+                dataOutputStream.writeInt(FRIENDS_STATUSES);
+                for (int k = 0; k < statuses.length; ++k) {
+                    dataOutputStream.writeBoolean(statuses[k]);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }

@@ -56,11 +56,12 @@ public class Database {
         return false;
     }
 
-    public static List<User> getFriends(int id) {
-        List<User> list = new ArrayList<>();
+    public static List<Friend> getFriends(int id) {
+        List<Friend> list = new ArrayList<>();
         for (User user : users) {
             if (user.getId() != id) {
-                list.add(user);
+                Friend friend = new Friend(user.getId(), user.getLogin(), false);
+                list.add(friend);
             }
         }
         return list;

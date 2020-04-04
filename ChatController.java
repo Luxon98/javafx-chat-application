@@ -15,8 +15,6 @@ import javafx.scene.image.Image;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static chatclient.Command.TEST;
-
 
 public class ChatController {
 
@@ -93,29 +91,38 @@ public class ChatController {
 
     @FXML
     private void test() {
-        clientApplication.sendCommand(TEST);
-
-        ImageView iw = (ImageView) friendsPanes[0].lookup("#statusImg");
-        iw.setImage(images[2]);
+        clientApplication.sendTest();
     }
 
     private void checkForMessages() {
         Thread thread = new Thread(() -> {
             while (!Client.getInstance().isProgramClosed()) {
-                if (clientApplication.containsMessage() && inUse.compareAndSet(false, true)) {
-                    Message message = clientApplication.getMessage();
-                    if (message.getSenderId() == currentInterlocutorId) {
-                        Platform.runLater(() -> {
-                            drawMessageLabel(message.getMessage(), true);
-                        });
-                    }
-                    else {
-                        //wyslij do bazy
+                if (inUse.compareAndSet(false, true)) {
+                    if (clientApplication.containsMessage()) {
+                        Message message = clientApplication.getMessage();
+                        if (message.getSenderId() == currentInterlocutorId) {
+                            Platform.runLater(() -> {
+                                drawMessageLabel(message.getMessage(), true);
+                            });
+                        }
+                        else {
+                            //wyslij do bazy
 
-                        int index = clientApplication.getListIndex(message.getSenderId());
-                        if (index != -1) {
-                            ImageView iw = (ImageView) friendsPanes[0].lookup("#messageImg");
-                            iw.setVisible(true);
+                            int index = clientApplication.getListIndex(message.getSenderId());
+                            if (index != -1) {
+                                ImageView iw = (ImageView) friendsPanes[0].lookup("#messageImg");
+                                iw.setVisible(true);
+                            }
+                        }
+                    }
+                    Boolean[] friendsStatuses = clientApplication.getFriendsStatuses();
+                    for (int i = 0; i < friendsStatuses.length; ++i) {
+                        ImageView iw = (ImageView) friendsPanes[i].lookup("#statusImg");
+                        if (!friendsStatuses[i]) {
+                            iw.setImage(images[2]);
+                        }
+                        else {
+                            iw.setImage(images[3]);
                         }
                     }
                     inUse.set(false);
@@ -142,11 +149,11 @@ public class ChatController {
     }
 
     private void drawFriendsPanel() {
-        List<User> friendsList = clientApplication.getFriendsList();
+        List<Friend> friendsList = clientApplication.getFriendsList();
         friendsPanes = new Pane[friendsList.size()];
 
         int index = 0, positionY = 65;
-        for (User user : friendsList) {
+        for (Friend friend : friendsList) {
             friendsPanes[index] = new Pane();
             friendsPanes[index].setPrefSize(200, 55);
             friendsPanes[index].setLayoutY(positionY);
@@ -173,7 +180,7 @@ public class ChatController {
             label.setLayoutX(53);
             label.setLayoutY(16);
             label.setTextFill(Color.WHITE);
-            label.setText(user.getLogin());
+            label.setText(friend.getLogin());
 
             friendsPanes[index].getChildren().add(messageImg);
             friendsPanes[index].getChildren().add(img);
@@ -181,7 +188,7 @@ public class ChatController {
             friendsPanes[index].getChildren().add(label);
             friendsPanes[index].setOnMouseClicked(t -> {
                 interlocutorLabel.setText(label.getText());
-                currentInterlocutorId = user.getId();
+                currentInterlocutorId = friend.getId();
                 removeMessages();
                 messagesPane.setPrefHeight(485);
                 messageImg.setVisible(false);
