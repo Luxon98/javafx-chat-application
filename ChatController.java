@@ -1,7 +1,8 @@
 package chatclient;
 
-import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.application.Platform;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -12,8 +13,11 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.image.Image;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static chatclient.ChatUtility.*;
 
 
 public class ChatController {
@@ -36,6 +40,9 @@ public class ChatController {
     @FXML
     private Pane friendsListPane;
 
+    @FXML
+    private Button sendMessageButton;
+
     private Pane[] friendsPanes;
     private Image[] images;
     private ClientApplication clientApplication;
@@ -47,8 +54,8 @@ public class ChatController {
     @FXML
     public void initialize() {
         int id = Database.getId(Client.getInstance().getUsername());
-        clientApplication = new ClientApplication("127.0.0.1", 4567, id);
-        inUse =  new AtomicBoolean();
+        clientApplication = new ClientApplication("127.0.0.1", 4597, id);
+        inUse = new AtomicBoolean();
         currentMessagesCounter = 0;
         currentInterlocutorId = id;
         initImages();
@@ -60,12 +67,12 @@ public class ChatController {
     @FXML
     private void sendMessage() {
         String message = messageTextArea.getText();
-        if (message != null) {
+        if (message != null && !message.isEmpty()) {
             clientApplication.sendMessage(currentInterlocutorId, message);
             messageTextArea.setText(null);
 
-            if (message.length() > 30) {
-                message = message.substring(0, 30) + "\n" + message.substring(30);
+            if (isTooLong(message)) {
+                message = splitWithNewLine(message);
             }
 
             drawMessageLabel(message, false);
@@ -76,7 +83,7 @@ public class ChatController {
     private void handleTextAreaKey(KeyEvent event) {
         if (event.getCode().equals(KeyCode.ENTER)) {
             String message = messageTextArea.getText();
-            message = message.substring(0, message.length() - 1);
+            message = cutNewLineCharacter(message);
             messageTextArea.setText(message);
 
             sendMessage();
@@ -84,9 +91,13 @@ public class ChatController {
     }
 
     @FXML
-    private void removeMessages() {
-        messagesPane.getChildren().clear();
-        currentMessagesCounter = 0;
+    private void changeSendMessageButtonStyle() {
+        sendMessageButton.setStyle("-fx-background-color: #0ac45e;");
+    }
+
+    @FXML
+    private void restoreSendMessageButtonStyle() {
+        sendMessageButton.setStyle("-fx-background-color: #3548db;");
     }
 
     @FXML
@@ -100,7 +111,7 @@ public class ChatController {
                 if (inUse.compareAndSet(false, true)) {
                     if (clientApplication.containsMessage()) {
                         Message message = clientApplication.getMessage();
-                        if (message.getSenderId() == currentInterlocutorId) {
+                        if (message.isFromCurrentInterlocutor(currentInterlocutorId)) {
                             Platform.runLater(() -> {
                                 drawMessageLabel(message.getMessage(), true);
                             });
@@ -109,27 +120,30 @@ public class ChatController {
                             //wyslij do bazy
 
                             int index = clientApplication.getListIndex(message.getSenderId());
-                            if (index != -1) {
-                                ImageView iw = (ImageView) friendsPanes[0].lookup("#messageImg");
-                                iw.setVisible(true);
+                            if (isProperIndex(index)) {
+                                showNewMessageImage(index);
                             }
                         }
                     }
-                    Boolean[] friendsStatuses = clientApplication.getFriendsStatuses();
-                    for (int i = 0; i < friendsStatuses.length; ++i) {
-                        ImageView iw = (ImageView) friendsPanes[i].lookup("#statusImg");
-                        if (!friendsStatuses[i]) {
-                            iw.setImage(images[2]);
-                        }
-                        else {
-                            iw.setImage(images[3]);
-                        }
-                    }
+                    showFriendsStatuses();
                     inUse.set(false);
                 }
             }
         });
         thread.start();
+    }
+
+    private void showNewMessageImage(int index) {
+        ImageView iw = (ImageView) friendsPanes[index].lookup("#messageImg");
+        iw.setVisible(true);
+    }
+
+    private void showFriendsStatuses() {
+        Boolean[] friendsStatuses = clientApplication.getFriendsStatuses();
+        for (int i = 0; i < friendsStatuses.length; ++i) {
+            ImageView statusIw = (ImageView) friendsPanes[i].lookup("#statusImg");
+            statusIw.setImage(friendsStatuses[i] ? images[2] : images[3]);
+        }
     }
 
     private void initImages() {
@@ -141,11 +155,16 @@ public class ChatController {
     }
 
     private void drawUserPanel() {
-        ImageView img = new ImageView(images[1]);
-        img.setLayoutX(18);
-        img.setLayoutY(12);
-        friendsListPane.getChildren().add(img);
+        ImageView userAvatar = getUserAvatar();
+        friendsListPane.getChildren().add(userAvatar);
         usernameLabel.setText(Client.getInstance().getUsername());
+    }
+
+    private ImageView getUserAvatar() {
+        ImageView avatar = new ImageView(images[1]);
+        avatar.setLayoutX(18);
+        avatar.setLayoutY(12);
+        return avatar;
     }
 
     private void drawFriendsPanel() {
@@ -155,53 +174,100 @@ public class ChatController {
         int index = 0, positionY = 65;
         for (Friend friend : friendsList) {
             friendsPanes[index] = new Pane();
-            friendsPanes[index].setPrefSize(200, 55);
-            friendsPanes[index].setLayoutY(positionY);
-            friendsPanes[index].setStyle("-fx-border-color: aliceblue; -fx-border-color: #a2a3a2; -fx-border-width: 0 0 1 0;");
+            setFriendPaneStyle(friendsPanes[index], positionY);
 
-            ImageView img = new ImageView(images[1]);
-            img.setLayoutX(18);
-            img.setLayoutY(12);
+            ImageView avatarImg = getFriendAvatar();
+            ImageView messageImg = getMessageImage();
+            ImageView statusImg = getStatusImage();
 
-            ImageView messageImg = new ImageView(images[0]);
-            messageImg.setLayoutX(150);
-            messageImg.setLayoutY(16);
-            messageImg.setId("messageImg");
-            messageImg.setVisible(false);
+            Label friendNameLabel = getFriendNameLabel(friend);
 
+            addFriendPaneComponents(friendsPanes[index], new ImageView[]{messageImg, avatarImg, statusImg}, friendNameLabel);
+            setMouseClickEvent(friendsPanes[index], friendNameLabel, messageImg, friend.getId());
 
-            ImageView statusImg = new ImageView(images[3]);
-            statusImg.setLayoutX(38);
-            statusImg.setLayoutY(31);
-            statusImg.setId("statusImg");
-
-
-            Label label = new Label();
-            label.setLayoutX(53);
-            label.setLayoutY(16);
-            label.setTextFill(Color.WHITE);
-            label.setText(friend.getLogin());
-
-            friendsPanes[index].getChildren().add(messageImg);
-            friendsPanes[index].getChildren().add(img);
-            friendsPanes[index].getChildren().add(statusImg);
-            friendsPanes[index].getChildren().add(label);
-            friendsPanes[index].setOnMouseClicked(t -> {
-                interlocutorLabel.setText(label.getText());
-                currentInterlocutorId = friend.getId();
-                removeMessages();
-                messagesPane.setPrefHeight(485);
-                messageImg.setVisible(false);
-            });
             friendsListPane.getChildren().add(friendsPanes[index]);
             positionY += 55;
             ++index;
         }
     }
 
+    private void setFriendPaneStyle(Pane friendPane, int y) {
+        friendPane.setPrefSize(200, 55);
+        friendPane.setLayoutY(y);
+        friendPane.setStyle("-fx-border-color: aliceblue; -fx-border-color: #a2a3a2; -fx-border-width: 0 0 1 0;");
+    }
+
+    private ImageView getFriendAvatar() {
+        ImageView avatar = new ImageView(images[1]);
+        avatar.setLayoutX(18);
+        avatar.setLayoutY(12);
+        return avatar;
+    }
+
+    private ImageView getMessageImage() {
+        ImageView image = new ImageView(images[0]);
+        image.setLayoutX(150);
+        image.setLayoutY(16);
+        image.setId("messageImg");
+        image.setVisible(false);
+        return image;
+    }
+
+    private ImageView getStatusImage() {
+        ImageView image = new ImageView(images[3]);
+        image.setLayoutX(38);
+        image.setLayoutY(31);
+        image.setId("statusImg");
+        return image;
+    }
+
+    private Label getFriendNameLabel(Friend friend) {
+        Label label = new Label();
+        label.setLayoutX(53);
+        label.setLayoutY(16);
+        label.setTextFill(Color.WHITE);
+        label.setText(friend.getLogin());
+        return label;
+    }
+
+    private void addFriendPaneComponents(Pane pane, ImageView[] images, Label friendNameLabel) {
+        pane.getChildren().add(images[0]);
+        pane.getChildren().add(images[1]);
+        pane.getChildren().add(images[2]);
+        pane.getChildren().add(friendNameLabel);
+    }
+
+    private void setMouseClickEvent(Pane friendPane, Label friendNameLabel, ImageView messageImg, int id) {
+        friendPane.setOnMouseClicked(t -> {
+            if (currentInterlocutorId != id) {
+                interlocutorLabel.setText(friendNameLabel.getText());
+                currentInterlocutorId = id;
+                removeMessages();
+                messagesPane.setPrefHeight(485);
+                messageImg.setVisible(false);
+            }
+        });
+    }
+
+    private void removeMessages() {
+        messagesPane.getChildren().clear();
+        currentMessagesCounter = 0;
+    }
+
     private void drawMessageLabel(String message, boolean isReceived) {
         Label label = new Label();
-        label.setPrefHeight(message.length() > 30 ? 46 : 23);
+        setLabelStyle(label, message, isReceived);
+
+        messagesPane.getChildren().add(label);
+        ++currentMessagesCounter;
+
+        if (isTooManyMessages(currentMessagesCounter)) {
+            adjustMessagesPane();
+        }
+    }
+
+    private void setLabelStyle(Label label, String message, boolean isReceived) {
+        label.setPrefHeight(isTooLong(message) ? 46 : 23);
         label.setText(message);
 
         if (isReceived) {
@@ -217,13 +283,10 @@ public class ChatController {
             label.setLayoutX(546 - text.getBoundsInLocal().getWidth());
         }
         label.setLayoutY(10 + currentMessagesCounter * 35);
+    }
 
-        messagesPane.getChildren().add(label);
-        ++currentMessagesCounter;
-
-        if (currentMessagesCounter >= 13) {
-            messagesPane.setPrefHeight(messagesPane.getHeight() + 40);
-            messagesScrollPane.setVvalue(1.0);
-        }
+    private void adjustMessagesPane() {
+        messagesPane.setPrefHeight(messagesPane.getHeight() + 40);
+        messagesScrollPane.setVvalue(1.0);
     }
 }

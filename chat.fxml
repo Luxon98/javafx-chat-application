@@ -19,6 +19,8 @@
                             <children>
                                 <Label fx:id="usernameLabel" layoutX="55.0" layoutY="13.5" text="Nickname"
                                        textFill="WHITE"/>
+                                <Button fx:id="testButton" layoutX="70.0" layoutY="565.0" mnemonicParsing="false"
+                                        onAction="#test" text="TEST" textFill="#da0c0c"/>
                             </children>
                         </Pane>
                     </children>
@@ -32,9 +34,10 @@
                                 <Font size="12.0"/>
                             </font>
                         </TextArea>
-                        <Button fx:id="sendMessageButton" layoutX="505.0" layoutY="562.0" mnemonicParsing="false"
-                                onAction="#sendMessage" prefHeight="35.0" prefWidth="70.0"
-                                style="-fx-background-color: #ff0019;" text="SEND" textFill="WHITE"/>
+                        <Button fx:id="sendMessageButton" layoutX="505.0" layoutY="561.0" mnemonicParsing="false"
+                                onAction="#sendMessage" onMouseEntered="#changeSendMessageButtonStyle"
+                                onMouseExited="#restoreSendMessageButtonStyle" prefHeight="35.0" prefWidth="70.0"
+                                style="-fx-background-color: #3548db;" text="SEND" textFill="WHITE"/>
                         <ScrollPane fx:id="messagesScrollPane" fitToWidth="true" layoutY="65.0" prefHeight="485.0"
                                     prefWidth="600.0">
                             <content>

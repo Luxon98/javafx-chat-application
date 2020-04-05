@@ -5,6 +5,7 @@ import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+
 import static chatclient.Command.*;
 
 
@@ -40,15 +41,10 @@ public class ClientApplication {
                     if (dataInputStream.available() > 0) {
                         int command = dataInputStream.readInt();
                         if (command == MESSAGE) {
-                            int senderId = dataInputStream.readInt();
-                            String text = dataInputStream.readUTF();
-
-                            messagesStack.push(new Message(senderId, text));
+                            receiveMessage(dataInputStream);
                         }
                         else if (command == FRIENDS_STATUSES) {
-                            for (int i = 0; i < friendsList.size(); ++i) {
-                                friendsList.get(i).setActiveStatus(dataInputStream.readBoolean());
-                            }
+                            updateFriendsStatus(dataInputStream);
                         }
                     }
                 }
@@ -58,6 +54,27 @@ public class ClientApplication {
             }
         });
         listenThread.start();
+    }
+
+    private void receiveMessage(DataInputStream dataInputStream) {
+        try {
+            int senderId = dataInputStream.readInt();
+            String text = dataInputStream.readUTF();
+            messagesStack.push(new Message(senderId, text));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateFriendsStatus(DataInputStream dataInputStream) {
+        try {
+            for (int i = 0; i < friendsList.size(); ++i) {
+                friendsList.get(i).setActiveStatus(dataInputStream.readBoolean());
+                System.out.println(friendsList.get(i).getLogin() + " - " + (friendsList.get(i).isActive() ? "online" : "offline"));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void checkFriendsStatuses() {
