@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
@@ -17,7 +18,7 @@
                         <Pane prefHeight="65.0" prefWidth="200.0"
                               style="-fx-background-color: #3d3c57; -fx-border-color: #a69c9c; -fx-border-width: 0 0 1 0;">
                             <children>
-                                <Label fx:id="usernameLabel" layoutX="55.0" layoutY="13.5" text="Nickname"
+                                <Label fx:id="usernameLabel" layoutX="59.0" layoutY="15.0" text="Nickname"
                                        textFill="WHITE"/>
                                 <Button fx:id="testButton" layoutX="70.0" layoutY="565.0" mnemonicParsing="false"
                                         onAction="#test" text="TEST" textFill="#da0c0c"/>
@@ -34,10 +35,18 @@
                                 <Font size="12.0"/>
                             </font>
                         </TextArea>
-                        <Button fx:id="sendMessageButton" layoutX="505.0" layoutY="561.0" mnemonicParsing="false"
+                        <Button fx:id="sendMessageButton" layoutX="507.0" layoutY="563.0" mnemonicParsing="false"
                                 onAction="#sendMessage" onMouseEntered="#changeSendMessageButtonStyle"
-                                onMouseExited="#restoreSendMessageButtonStyle" prefHeight="35.0" prefWidth="70.0"
-                                style="-fx-background-color: #3548db;" text="SEND" textFill="WHITE"/>
+                                onMouseExited="#restoreSendMessageButtonStyle" prefHeight="30.0" prefWidth="60.0"
+                                style="-fx-background-color: #d63900;" textFill="WHITE">
+                            <graphic>
+                                <ImageView fitHeight="23.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                        <Image url="@../../../../images/send_icon.png"/>
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Button>
                         <ScrollPane fx:id="messagesScrollPane" fitToWidth="true" layoutY="65.0" prefHeight="485.0"
                                     prefWidth="600.0">
                             <content>

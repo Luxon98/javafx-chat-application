@@ -92,12 +92,12 @@ public class ChatController {
 
     @FXML
     private void changeSendMessageButtonStyle() {
-        sendMessageButton.setStyle("-fx-background-color: #0ac45e;");
+        sendMessageButton.setStyle("-fx-background-color: #3548db;");
     }
 
     @FXML
     private void restoreSendMessageButtonStyle() {
-        sendMessageButton.setStyle("-fx-background-color: #3548db;");
+        sendMessageButton.setStyle("-fx-background-color: #d63900;");
     }
 
     @FXML
@@ -148,7 +148,7 @@ public class ChatController {
 
     private void initImages() {
         images = new Image[4];
-        images[0] = new Image("file:images/haze.png");
+        images[0] = new Image("file:images/new_message.png");
         images[1] = new Image("file:images/default_avatar.png");
         images[2] = new Image("file:images/green_circle.png");
         images[3] = new Image("file:images/red_circle.png");
@@ -206,8 +206,8 @@ public class ChatController {
 
     private ImageView getMessageImage() {
         ImageView image = new ImageView(images[0]);
-        image.setLayoutX(150);
-        image.setLayoutY(16);
+        image.setLayoutX(147);
+        image.setLayoutY(13);
         image.setId("messageImg");
         image.setVisible(false);
         return image;
@@ -215,16 +215,16 @@ public class ChatController {
 
     private ImageView getStatusImage() {
         ImageView image = new ImageView(images[3]);
-        image.setLayoutX(38);
-        image.setLayoutY(31);
+        image.setLayoutX(41);
+        image.setLayoutY(34);
         image.setId("statusImg");
         return image;
     }
 
     private Label getFriendNameLabel(Friend friend) {
         Label label = new Label();
-        label.setLayoutX(53);
-        label.setLayoutY(16);
+        label.setLayoutX(58);
+        label.setLayoutY(18);
         label.setTextFill(Color.WHITE);
         label.setText(friend.getLogin());
         return label;
