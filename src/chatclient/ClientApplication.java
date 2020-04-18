@@ -7,25 +7,26 @@ import java.time.Instant;
 import java.util.*;
 
 import static chatclient.Command.*;
+import static chatclient.ServerConnection.*;
 
 
-public class ClientApplication {
+class ClientApplication {
     private int userId;
     private Socket socket;
     private List<Friend> friendsList;
-    private Stack<Message> messagesStack;
+    private Stack<Message> messagesStack = new Stack<>();
 
-    public ClientApplication(String address, int port, int id) {
+    public ClientApplication(int id) {
         userId = id;
         friendsList = new ArrayList<>(AuxiliaryDatabase.getFriends(userId));
-        messagesStack = new Stack<>();
 
         try {
-            socket = new Socket(address, port);
+            socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
             dataOutputStream.writeInt(CONNECT);
             dataOutputStream.writeInt(userId);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -49,7 +50,8 @@ public class ClientApplication {
                     }
                 }
                 disconnect();
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 e.printStackTrace();
             }
         });
@@ -61,7 +63,8 @@ public class ClientApplication {
             int senderId = dataInputStream.readInt();
             String text = dataInputStream.readUTF();
             messagesStack.push(new Message(senderId, text));
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -70,9 +73,10 @@ public class ClientApplication {
         try {
             for (int i = 0; i < friendsList.size(); ++i) {
                 friendsList.get(i).setActiveStatus(dataInputStream.readBoolean());
-                System.out.println(friendsList.get(i).getLogin() + " - " + (friendsList.get(i).isActive() ? "online" : "offline"));
+                //System.out.println(friendsList.get(i).getLogin() + " - " + (friendsList.get(i).isActive() ? "online" : "offline"));
             }
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -93,7 +97,8 @@ public class ClientApplication {
                         start = finish;
                     }
                 }
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 e.printStackTrace();
             }
         });
@@ -106,7 +111,8 @@ public class ClientApplication {
             dataOutputStream.writeInt(MESSAGE);
             dataOutputStream.writeInt(id);
             dataOutputStream.writeUTF(message);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -116,7 +122,8 @@ public class ClientApplication {
         try {
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
             dataOutputStream.writeInt(DISCONNECT);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -126,7 +133,8 @@ public class ClientApplication {
         try {
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
             dataOutputStream.writeInt(TEST);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
     }

@@ -1,8 +1,6 @@
 package chatclient;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,8 +48,8 @@ class DatabaseConnectionPoolManager {
                 try {
                     connectionPool.add(createConnection());
                 }
-                catch (SQLException throwables) {
-                    throwables.printStackTrace();
+                catch (SQLException throwable) {
+                    throwable.printStackTrace();
                 }
             }
             else {
@@ -75,8 +73,8 @@ class DatabaseConnectionPoolManager {
             try {
                 c.close();
             }
-            catch (SQLException throwables) {
-                throwables.printStackTrace();
+            catch (SQLException throwable) {
+                throwable.printStackTrace();
             }
         }
         connectionPool.clear();

@@ -1,6 +1,6 @@
 package chatclient;
 
-public class Command {
+class Command {
     public static final int CONNECT = 1;
     public static final int MESSAGE = 2;
     public static final int DISCONNECT = 3;

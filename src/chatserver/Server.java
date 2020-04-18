@@ -55,7 +55,8 @@ class Server {
                         sendMessage(userId, 2, "test");
                     }
                 }
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -66,7 +67,8 @@ class Server {
                 String text = dataInputStream.readUTF();
                 sendMessage(receiverId, userId, text);
                 System.out.println("Client #" + userId + " send: " + text + " to a client #" + receiverId);
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 e.printStackTrace();
             }
 
@@ -80,7 +82,8 @@ class Server {
                     dataOutputStream.writeInt(MESSAGE);
                     dataOutputStream.writeInt(senderId);
                     dataOutputStream.writeUTF(message);
-                } catch (IOException e) {
+                }
+                catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -91,7 +94,8 @@ class Server {
             connectedClients.removeIf(client -> client.getUserId() == userId);
             try {
                 clientSocket.close();
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -110,7 +114,8 @@ class Server {
                 for (int i = 0; i < length; ++i) {
                     friendsIndexes[i] = dataInputStream.readInt();
                 }
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 e.printStackTrace();
             }
             return friendsIndexes;
@@ -132,7 +137,8 @@ class Server {
                 for (int k = 0; k < statuses.length; ++k) {
                     dataOutputStream.writeBoolean(statuses[k]);
                 }
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -141,7 +147,8 @@ class Server {
     public Server() {
         try {
             serverSocket = new ServerSocket(SERVER_PORT);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
             System.out.println("Unable to start the server.");
             return;
@@ -164,7 +171,8 @@ class Server {
                     int id = dataInputStream.readInt();
                     ClientThread clientThread = new ClientThread(id, listeningSocket);
                 }
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 e.printStackTrace();
             }
         }

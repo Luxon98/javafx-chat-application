@@ -1,6 +1,6 @@
 package chatclient;
 
-public class Friend {
+class Friend {
     private int id;
     private String login;
     private boolean activeStatus;

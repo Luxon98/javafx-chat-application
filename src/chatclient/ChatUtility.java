@@ -1,6 +1,6 @@
 package chatclient;
 
-public class ChatUtility {
+class ChatUtility {
 
     static public boolean isTooLong(String message) {
         return (message.length() > 30);

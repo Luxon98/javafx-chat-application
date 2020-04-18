@@ -1,6 +1,6 @@
 package chatclient;
 
-public class Client {
+class Client {
     private final static Client instance = new Client();
     private String username;
     private boolean closedFlag;

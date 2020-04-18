@@ -15,6 +15,8 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+import static chatclient.SqlQueries.isExistingUser;
+
 
 public class LogInController {
 
@@ -57,7 +59,7 @@ public class LogInController {
         String login = loginTextField.getText();
         String password = passwordTextField.getText();
 
-        if (!AuxiliaryDatabase.isUser(login, password)) {
+        if (!isExistingUser(login, password)) {
             showLoginFailedAlert();
             return;
         }
@@ -65,7 +67,8 @@ public class LogInController {
         try {
             Client.getInstance().setUsername(login);
             setChatScene();
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -89,21 +92,25 @@ public class LogInController {
 
     @FXML
     public void changeNewAccountButtonStyle() {
-        newAccountButton.setStyle("-fx-background-color: #b2d6eb; -fx-border-color: #3a3d39; -fx-text-fill: #4d190b; -fx-background-radius: 8; -fx-border-radius: 8");
+        newAccountButton.setStyle("-fx-background-color: #b2d6eb; -fx-border-color: #3a3d39; -fx-text-fill: #4d190b; " +
+                "-fx-background-radius: 8; -fx-border-radius: 8");
     }
 
     @FXML
     public void restoreNewAccountButtonStyle() {
-        newAccountButton.setStyle("-fx-background-color: #e89910; -fx-border-color: #3a3d39; -fx-text-fill: #000000; -fx-background-radius: 8; -fx-border-radius: 8");
+        newAccountButton.setStyle("-fx-background-color: #e89910; -fx-border-color: #3a3d39; -fx-text-fill: #000000; " +
+                "-fx-background-radius: 8; -fx-border-radius: 8");
     }
 
     @FXML
     public void changeLoginButtonStyle() {
-        loginButton.setStyle("-fx-background-color: #3e4eab; -fx-font-size: 14; -fx-border-color: #3a3d39; -fx-background-radius: 9; -fx-border-radius: 9");
+        loginButton.setStyle("-fx-background-color: #3e4eab; -fx-font-size: 14; -fx-border-color: #3a3d39; " +
+                "-fx-background-radius: 9; -fx-border-radius: 9");
     }
 
     @FXML
     public void restoreLoginButtonStyle() {
-        loginButton.setStyle("-fx-background-color: #53adb5; -fx-font-size: 14; -fx-border-color: #3a3d39; -fx-background-radius: 9; -fx-border-radius: 9");
+        loginButton.setStyle("-fx-background-color: #53adb5; -fx-font-size: 14; -fx-border-color: #3a3d39; " +
+                "-fx-background-radius: 9; -fx-border-radius: 9");
     }
 }

@@ -1,13 +1,11 @@
 package chatserver;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 
-class DatabaseConnectionPoolManager {
+public class DatabaseConnectionPoolManager {
     private final static String DATABASE_URL = "jdbc:mysql://remotemysql.com:3306/LpjSGEW1V2";
     private final static String DATABASE_USERNAME = "LpjSGEW1V2";
     private final static String DATABASE_PASSWORD = "tPLNxeKbt5";
@@ -17,6 +15,15 @@ class DatabaseConnectionPoolManager {
 
     private List<Connection> connectionPool;
     private List<Connection> usedConnections = new ArrayList<>();
+
+    private static DatabaseConnectionPoolManager instance = null;
+
+    public static DatabaseConnectionPoolManager getInstance() {
+        if (instance == null) {
+            instance = new DatabaseConnectionPoolManager();
+        }
+        return instance;
+    }
 
     private Connection createConnection() throws SQLException {
         return DriverManager.getConnection(DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD);
@@ -41,8 +48,8 @@ class DatabaseConnectionPoolManager {
                 try {
                     connectionPool.add(createConnection());
                 }
-                catch (SQLException throwables) {
-                    throwables.printStackTrace();
+                catch (SQLException throwable) {
+                    throwable.printStackTrace();
                 }
             }
             else {
@@ -66,8 +73,8 @@ class DatabaseConnectionPoolManager {
             try {
                 c.close();
             }
-            catch (SQLException throwables) {
-                throwables.printStackTrace();
+            catch (SQLException throwable) {
+                throwable.printStackTrace();
             }
         }
         connectionPool.clear();

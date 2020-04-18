@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static chatclient.ChatUtility.*;
+import static chatclient.SqlQueries.*;
 
 
 public class ChatController {
@@ -46,17 +47,15 @@ public class ChatController {
     private Pane[] friendsPanes;
     private Image[] images;
     private ClientApplication clientApplication;
-    private AtomicBoolean inUse;
+    private AtomicBoolean inUse = new AtomicBoolean();
     private int currentInterlocutorId;
-    private int currentMessagesCounter;
+    private int currentMessagesCounter = 0;
 
 
     @FXML
     public void initialize() {
-        int id = AuxiliaryDatabase.getId(Client.getInstance().getUsername());
-        clientApplication = new ClientApplication("127.0.0.1", 4597, id);
-        inUse = new AtomicBoolean();
-        currentMessagesCounter = 0;
+        int id = getId(Client.getInstance().getUsername());
+        clientApplication = new ClientApplication(id);
         currentInterlocutorId = id;
         initImages();
         drawUserPanel();
@@ -117,8 +116,6 @@ public class ChatController {
                             });
                         }
                         else {
-                            //wyslij do bazy
-
                             int index = clientApplication.getListIndex(message.getSenderId());
                             if (isProperIndex(index)) {
                                 showNewMessageImage(index);

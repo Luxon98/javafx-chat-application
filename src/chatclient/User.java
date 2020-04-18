@@ -1,7 +1,7 @@
 package chatclient;
 
 
-public class User {
+class User {
     private int id;
     private String login;
     private String password;

@@ -9,6 +9,8 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 import java.io.IOException;
 
+import static chatclient.SqlQueries.*;
+
 
 public class SignUpController {
 
@@ -90,13 +92,13 @@ public class SignUpController {
     @FXML
     public void registerAccount(ActionEvent event) {
         String login = loginTextField.getText();
-        if (AuxiliaryDatabase.isLoginTaken(login)) {
-            showDataTakenAlert("Login");
+        if (isUsernameAlreadyTaken(login)) {
+            showDataTakenAlert("Username");
             return;
         }
 
         String email = emailTextField.getText();
-        if (AuxiliaryDatabase.isEmailTaken(email)) {
+        if (isEmailAlreadyTaken(email)) {
             showDataTakenAlert("E-mail address");
             return;
         }
@@ -107,11 +109,12 @@ public class SignUpController {
 
         String password1 = (passwordCheckBox.isSelected() ? passwordTextField.getText() : passwordField.getText());
         String password2 = (passwordCheckBox.isSelected() ? confirmPasswordTextField.getText() : confirmPasswordField.getText());
-        if (!password1.contains(password2)) {
+        if (!password1.equals(password2)) {
             showDifferentPasswordsAlert();
             return;
         }
 
+        insertNewUser(login, email, BCrypt.hashpw(password1, BCrypt.gensalt()));
         showUserCreatedAlert();
     }
 

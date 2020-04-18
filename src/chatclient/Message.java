@@ -1,6 +1,6 @@
 package chatclient;
 
-public class Message {
+class Message {
     private int senderId;
     private String message;
 
