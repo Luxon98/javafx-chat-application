@@ -9,7 +9,7 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 import java.io.IOException;
 
-import static chatclient.SqlQueries.*;
+import static chatclient.DatabaseQueries.*;
 
 
 public class SignUpController {

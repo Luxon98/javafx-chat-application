@@ -2,12 +2,12 @@ package chatclient;
 
 class Friend {
     private int id;
-    private String login;
+    private String username;
     private boolean activeStatus;
 
     public Friend(int id, String login, boolean activeStatus) {
         this.id = id;
-        this.login = login;
+        this.username = login;
         this.activeStatus = activeStatus;
     }
 
@@ -15,8 +15,8 @@ class Friend {
         return id;
     }
 
-    public String getLogin() {
-        return login;
+    public String getUsername() {
+        return username;
     }
 
     public boolean isActive() {

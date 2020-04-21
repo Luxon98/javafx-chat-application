@@ -15,7 +15,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-import static chatclient.SqlQueries.isExistingUser;
+import static chatclient.DatabaseQueries.isExistingUser;
 
 
 public class LogInController {

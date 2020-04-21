@@ -8,17 +8,18 @@ import java.util.*;
 
 import static chatclient.Command.*;
 import static chatclient.ServerConnection.*;
+import static chatclient.DatabaseQueries.*;
 
 
 class ClientApplication {
     private int userId;
     private Socket socket;
-    private List<Friend> friendsList;
+    private List<Friend> friendsList = new ArrayList<>();
     private Stack<Message> messagesStack = new Stack<>();
 
     public ClientApplication(int id) {
         userId = id;
-        friendsList = new ArrayList<>(AuxiliaryDatabase.getFriends(userId));
+        fillFriendsList();
 
         try {
             socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
@@ -32,6 +33,14 @@ class ClientApplication {
 
         listen();
         checkFriendsStatuses();
+    }
+
+    private void fillFriendsList() {
+        int[] friendsIds = getFriendsIds(userId);
+        for (int friendId : friendsIds) {
+            String username = getUsername(friendId);
+            friendsList.add(new Friend(friendId, username, false));
+        }
     }
 
     private void listen() {

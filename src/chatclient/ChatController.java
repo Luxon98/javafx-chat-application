@@ -1,11 +1,9 @@
 package chatclient;
 
+import com.sun.scenario.effect.impl.sw.java.JSWBlend_SRC_OUTPeer;
 import javafx.fxml.FXML;
 import javafx.application.Platform;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -15,10 +13,11 @@ import javafx.scene.text.Text;
 import javafx.scene.image.Image;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static chatclient.ChatUtility.*;
-import static chatclient.SqlQueries.*;
+import static chatclient.DatabaseQueries.*;
 
 
 public class ChatController {
@@ -102,6 +101,18 @@ public class ChatController {
     @FXML
     private void test() {
         clientApplication.sendTest();
+    }
+
+    @FXML
+    private void showUsernameTextInputDialog() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Invite a friend");
+        dialog.setHeaderText("Type username");
+        dialog.setContentText("Please, enter your friend's username:");
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()){
+            // check username in database
+        }
     }
 
     private void checkForMessages() {
@@ -223,7 +234,7 @@ public class ChatController {
         label.setLayoutX(58);
         label.setLayoutY(18);
         label.setTextFill(Color.WHITE);
-        label.setText(friend.getLogin());
+        label.setText(friend.getUsername());
         return label;
     }
 

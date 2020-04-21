@@ -20,8 +20,10 @@
                             <children>
                                 <Label fx:id="usernameLabel" layoutX="59.0" layoutY="15.0" text="Nickname"
                                        textFill="WHITE"/>
-                                <Button fx:id="testButton" layoutX="70.0" layoutY="565.0" mnemonicParsing="false"
+                                <Button fx:id="testButton" layoutX="15.0" layoutY="565.0" mnemonicParsing="false"
                                         onAction="#test" text="TEST" textFill="#da0c0c"/>
+                                <Button fx:id="addFriendButton" layoutX="85.0" layoutY="565.0" mnemonicParsing="false"
+                                        onAction="#showUsernameTextInputDialog" text="Add friend"/>
                             </children>
                         </Pane>
                     </children>
