@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static chatserver.Command.*;
+import static chatserver.DatabaseQueries.*;
 
 
 class Server {
@@ -46,13 +47,27 @@ class Server {
                     else if (command == FRIENDS_STATUSES) {
                         handleFriendsStatusRequest(dataInputStream);
                     }
+                    else if (command == INVITATION) {
+                        handleInvitation(dataInputStream);
+                    }
+                    else if (command == TEST) {             // do kasacji potem
+                        System.out.println("Client #" + userId + " - test");
+                        //sendMessage(userId, 2, "test");
+                        ClientResource client = getClient(5);
+                        if (client != null) {
+                            try {
+                                DataOutputStream dataOutputStream = new DataOutputStream(client.getOutputStream());
+                                dataOutputStream.writeInt(INVITATION);
+                                dataOutputStream.writeInt(4);
+                            }
+                            catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
                     else if (command == DISCONNECT) {
                         disconnectClient();
                         return;
-                    }
-                    else if (command == TEST) {             // do kasacji potem
-                        System.out.println("CLient #" + userId + " - test");
-                        sendMessage(userId, 2, "test");
                     }
                 }
             }
@@ -74,7 +89,7 @@ class Server {
 
         }
 
-        private void sendMessage(int receiverId, int senderId, String message) {
+        private void sendMessage(int receiverId, int senderId, String message) {          // potem senderId do wywalenia
             ClientResource client = getClient(receiverId);
             if (client != null) {
                 try {
@@ -87,17 +102,9 @@ class Server {
                     e.printStackTrace();
                 }
             }
-        }
-
-        private void disconnectClient() {
-            System.out.println("Client #" + userId + " disconnected");
-            connectedClients.removeIf(client -> client.getUserId() == userId);
-            try {
-                clientSocket.close();
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
+            //else {
+            //    wyslij wiadomosc do bazy
+            //}
         }
 
         private void handleFriendsStatusRequest(DataInputStream dataInputStream) {
@@ -125,23 +132,60 @@ class Server {
             try {
                 DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
                 boolean[] statuses = new boolean[arr.length];
-                for (int i = 0; i < connectedClients.size(); ++i) {
-                    for (int j = 0; j < arr.length; ++j) {
-                        if (arr[j] == connectedClients.get(i).getUserId()) {
-                            statuses[j] = true;
+                for (ClientResource connectedClient : connectedClients) {
+                    for (int i = 0; i < arr.length; ++i) {
+                        if (arr[i] == connectedClient.getUserId()) {
+                            statuses[i] = true;
                         }
                     }
                 }
 
                 dataOutputStream.writeInt(FRIENDS_STATUSES);
-                for (int k = 0; k < statuses.length; ++k) {
-                    dataOutputStream.writeBoolean(statuses[k]);
+                for (boolean b : statuses) {
+                    dataOutputStream.writeBoolean(b);
                 }
             }
             catch (IOException e) {
                 e.printStackTrace();
             }
         }
+
+        private void handleInvitation(DataInputStream dataInputStream) {
+            try {
+                int receiverId = dataInputStream.readInt();
+                System.out.println("User #" + userId + " invited user #" + receiverId + " to friends");
+                ClientResource client = getClient(receiverId);
+                if (client != null) {
+                    try {
+                        DataOutputStream dataOutputStream = new DataOutputStream(client.getOutputStream());
+                        dataOutputStream.writeInt(INVITATION);
+                        dataOutputStream.writeInt(userId);
+                    }
+                    catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                else {
+                    insertNewInvitation(userId, receiverId);
+                }
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void disconnectClient() {
+            System.out.println("Client #" + userId + " disconnected");
+            connectedClients.removeIf(client -> client.getUserId() == userId);
+            try {
+                clientSocket.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+
     }
 
     public Server() {

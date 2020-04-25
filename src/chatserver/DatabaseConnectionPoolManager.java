@@ -10,7 +10,7 @@ public class DatabaseConnectionPoolManager {
     private final static String DATABASE_USERNAME = "LpjSGEW1V2";
     private final static String DATABASE_PASSWORD = "tPLNxeKbt5";
     private final static String DRIVER_NAME = "com.mysql.cj.jdbc.Driver";
-    private final static int INITIAL_POOL_SIZE = 4;
+    private final static int INITIAL_POOL_SIZE = 2;
     private final static int MAXIMAL_POOL_SIZE = 10;
 
     private List<Connection> connectionPool;
