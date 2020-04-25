@@ -16,6 +16,7 @@ class ClientApplication {
     private Socket socket;
     private List<Friend> friendsList = new ArrayList<>();
     private Stack<Message> messagesStack = new Stack<>();
+    private Stack<Integer> invitationsStack = new Stack<>();
 
     public ClientApplication(int id) {
         userId = id;
@@ -56,6 +57,9 @@ class ClientApplication {
                         else if (command == FRIENDS_STATUSES) {
                             updateFriendsStatus(dataInputStream);
                         }
+                        else if (command == INVITATION) {
+                            receiveInvitation(dataInputStream);
+                        }
                     }
                 }
                 disconnect();
@@ -84,6 +88,16 @@ class ClientApplication {
                 friendsList.get(i).setActiveStatus(dataInputStream.readBoolean());
                 //System.out.println(friendsList.get(i).getLogin() + " - " + (friendsList.get(i).isActive() ? "online" : "offline"));
             }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void receiveInvitation(DataInputStream dataInputStream) {
+        try {
+            int senderId = dataInputStream.readInt();
+            invitationsStack.push(senderId);
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -124,7 +138,17 @@ class ClientApplication {
         catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
+    public void sendInvitation(int id) {
+        try {
+            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            dataOutputStream.writeInt(INVITATION);
+            dataOutputStream.writeInt(id);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void disconnect() {
@@ -148,6 +172,10 @@ class ClientApplication {
         }
     }
 
+    public int getUserId() {
+        return userId;
+    }
+
     public int getListIndex(int id) {
         for (int i = 0; i < friendsList.size(); ++i) {
             if (friendsList.get(i).getId() == id) {
@@ -155,6 +183,15 @@ class ClientApplication {
             }
         }
         return -1;
+    }
+
+    public boolean isAlreadyFriend(String name) {
+        for (Friend friend : friendsList) {
+            if (friend.getUsername().equals(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public List<Friend> getFriendsList() {
@@ -167,6 +204,14 @@ class ClientApplication {
 
     public Message getMessage() {
         return messagesStack.pop();
+    }
+
+    public boolean constainsInvitation() {
+        return (!invitationsStack.empty());
+    }
+
+    public int getInvitingUserId() {
+        return invitationsStack.pop();
     }
 
     public Boolean[] getFriendsStatuses() {

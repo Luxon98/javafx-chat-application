@@ -1,6 +1,5 @@
 package chatclient;
 
-import com.sun.scenario.effect.impl.sw.java.JSWBlend_SRC_OUTPeer;
 import javafx.fxml.FXML;
 import javafx.application.Platform;
 import javafx.scene.control.*;
@@ -14,6 +13,8 @@ import javafx.scene.image.Image;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static chatclient.ChatUtility.*;
@@ -59,7 +60,7 @@ public class ChatController {
         initImages();
         drawUserPanel();
         drawFriendsPanel();
-        checkForMessages();
+        checkForUpcomingContent();
     }
 
     @FXML
@@ -110,12 +111,80 @@ public class ChatController {
         dialog.setHeaderText("Type username");
         dialog.setContentText("Please, enter your friend's username:");
         Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()){
-            // check username in database
+        if (result.isPresent()) {
+            String username = result.get();
+            handleInvitationUsername(username);
         }
     }
 
-    private void checkForMessages() {
+    private void handleInvitationUsername(String username) {
+        if (clientApplication.isAlreadyFriend(username)) {
+            showAlreadyFriendDialog(username);
+        }
+        else if (usernameLabel.getText().equals(username)) {
+            showCannotInviteYourselfDialog();
+        }
+        else if (isExistingUsername(username)) {
+            int receiverId = getId(username);
+            if (!isExistingInvitation(clientApplication.getUserId(), receiverId)) {
+                showInvitationSendDialog(username);
+                clientApplication.sendInvitation(receiverId);
+            }
+            else {
+                showInvitationSentAlreadyDialog();
+            }
+        }
+        else {
+            showUserDoesntExistDialog();
+        }
+    }
+
+    private void showInvitationSendDialog(String username) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Invitation sent");
+        alert.setHeaderText(null);
+        alert.setContentText("The invitation to user " + username + " was sent");
+
+        alert.showAndWait();
+    }
+
+    private void showAlreadyFriendDialog(String username) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Warning");
+        alert.setHeaderText(null);
+        alert.setContentText("The user " + username + " is your friend already");
+
+        alert.showAndWait();
+    }
+
+    private void showUserDoesntExistDialog() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText(null);
+        alert.setContentText("The user with the given name does not exist \nin the database");
+
+        alert.showAndWait();
+    }
+
+    private void showCannotInviteYourselfDialog() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText(null);
+        alert.setContentText("You cannot invite yourself!");
+
+        alert.showAndWait();
+    }
+
+    private void showInvitationSentAlreadyDialog() {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Warning");
+        alert.setHeaderText(null);
+        alert.setContentText("You have already invited this user");
+
+        alert.showAndWait();
+    }
+
+    private void checkForUpcomingContent() {
         Thread thread = new Thread(() -> {
             while (!Client.getInstance().isProgramClosed()) {
                 if (inUse.compareAndSet(false, true)) {
@@ -133,7 +202,13 @@ public class ChatController {
                             }
                         }
                     }
-                    showFriendsStatuses();
+                    if (clientApplication.constainsInvitation()) {
+                        int senderId = clientApplication.getInvitingUserId();
+                        if (isAcceptingInvitation(getUsername(senderId))) {
+                            insertNewFriendship(senderId, clientApplication.getUserId());
+                        }
+                    }
+                    updateFriendsStatuses();
                     inUse.set(false);
                 }
             }
@@ -146,7 +221,7 @@ public class ChatController {
         iw.setVisible(true);
     }
 
-    private void showFriendsStatuses() {
+    private void updateFriendsStatuses() {
         Boolean[] friendsStatuses = clientApplication.getFriendsStatuses();
         for (int i = 0; i < friendsStatuses.length; ++i) {
             ImageView statusIw = (ImageView) friendsPanes[i].lookup("#statusImg");
@@ -296,5 +371,32 @@ public class ChatController {
     private void adjustMessagesPane() {
         messagesPane.setPrefHeight(messagesPane.getHeight() + 40);
         messagesScrollPane.setVvalue(1.0);
+    }
+
+    private boolean isAcceptingInvitation(String username) {
+        boolean result = false;
+        final FutureTask query = new FutureTask(() -> getUserAnswer(username));
+        Platform.runLater(query);
+        try {
+            result = (boolean) query.get();
+        }
+        catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    private boolean getUserAnswer(String username) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Invitation");
+        alert.setHeaderText("The user " + username + " has invited you to friends");
+        alert.setContentText("Do you want to accept the invitation");
+
+        ButtonType confirmationButton = new ButtonType("Yes");
+        ButtonType rejectionButton = new ButtonType("No");
+        alert.getButtonTypes().setAll(confirmationButton, rejectionButton);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.filter(buttonType -> (buttonType == confirmationButton)).isPresent();
     }
 }

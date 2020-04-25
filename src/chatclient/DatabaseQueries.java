@@ -10,12 +10,12 @@ import java.util.TreeMap;
 
 class DatabaseQueries {
 
-    public static boolean isUsernameAlreadyTaken(String username) {
+    public static boolean isExistingUsername(String username) {
         String query = "SELECT * FROM User WHERE username = ?";
         return isVariableExistingInDatabase(username, query);
     }
 
-    public static boolean isEmailAlreadyTaken(String emailAddress) {
+    public static boolean isExistingEmail(String emailAddress) {
         String query = "SELECT * FROM User WHERE email = ?";
         return isVariableExistingInDatabase(emailAddress, query);
     }
@@ -59,6 +59,27 @@ class DatabaseQueries {
         }
 
         DatabaseConnectionPoolManager.getInstance().releaseConnection(connection);
+        return result;
+    }
+
+    public static boolean isExistingInvitation(int firstUserId, int secondUserId) {
+        boolean result = false;
+        String query = "SELECT * FROM Invitation WHERE inviting_user_id = ? and invited_user_id = ?";
+
+        Connection connection = DatabaseConnectionPoolManager.getInstance().getConnection();
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setInt(1, firstUserId);
+            preparedStatement.setInt(2, secondUserId);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                result = resultSet.next();
+            }
+        }
+        catch (SQLException throwable) {
+            throwable.printStackTrace();
+        }
+        DatabaseConnectionPoolManager.getInstance().releaseConnection(connection);
+
         return result;
     }
 

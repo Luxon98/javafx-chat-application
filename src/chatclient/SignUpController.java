@@ -92,13 +92,13 @@ public class SignUpController {
     @FXML
     public void registerAccount(ActionEvent event) {
         String login = loginTextField.getText();
-        if (isUsernameAlreadyTaken(login)) {
+        if (isExistingUsername(login)) {
             showDataTakenAlert("Username");
             return;
         }
 
         String email = emailTextField.getText();
-        if (isEmailAlreadyTaken(email)) {
+        if (isExistingEmail(email)) {
             showDataTakenAlert("E-mail address");
             return;
         }
