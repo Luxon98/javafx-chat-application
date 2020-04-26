@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -202,5 +204,38 @@ class DatabaseQueries {
         }
 
         DatabaseConnectionPoolManager.getInstance().releaseConnection(connection);
+    }
+
+    public static Integer[] getPendingInvitations(int userId) {
+        List<Integer> prospectiveFriendsIdsList = new ArrayList<>();
+        String query = "SELECT inviting_user_id FROM Invitation WHERE invited_user_id = ?";
+
+        Connection connection = DatabaseConnectionPoolManager.getInstance().getConnection();
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setInt(1, userId);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    prospectiveFriendsIdsList.add(resultSet.getInt("inviting_user_id"));
+                }
+            }
+        }
+        catch (SQLException throwable) {
+            throwable.printStackTrace();
+        }
+
+        return prospectiveFriendsIdsList.toArray(new Integer[0]);
+    }
+
+    public static void removePendingInvitations(int userId) {
+        String query = "DELETE FROM Invitation WHERE invited_user_id = ?";
+
+        Connection connection = DatabaseConnectionPoolManager.getInstance().getConnection();
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setInt(1, userId);
+            preparedStatement.executeUpdate();
+        }
+        catch (SQLException throwable) {
+            throwable.printStackTrace();
+        }
     }
 }

@@ -13,35 +13,51 @@ import static chatclient.DatabaseQueries.*;
 
 class ClientApplication {
     private int userId;
+    private boolean friendsStatusesUpdateFlag = false;
     private Socket socket;
-    private List<Friend> friendsList = new ArrayList<>();
-    private Stack<Message> messagesStack = new Stack<>();
-    private Stack<Integer> invitationsStack = new Stack<>();
+    private List<Friend> friendsList;
+    private Queue<Message> messagesQueue = new LinkedList<>();
+    private Queue<Integer> invitationsQueue = new LinkedList<>();
 
     public ClientApplication(int id) {
         userId = id;
+        if (!initDataOutputStream()) {
+            return;
+        }
         fillFriendsList();
-
-        try {
-            socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
-            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-            dataOutputStream.writeInt(CONNECT);
-            dataOutputStream.writeInt(userId);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
+        fillInvitationsQueue();
 
         listen();
         checkFriendsStatuses();
     }
 
+    private boolean initDataOutputStream() {
+        try {
+            socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
+            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            dataOutputStream.writeInt(CONNECT);
+            dataOutputStream.writeInt(userId);
+            return true;
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     private void fillFriendsList() {
+        friendsList = new ArrayList<>();
         int[] friendsIds = getFriendsIds(userId);
         for (int friendId : friendsIds) {
             String username = getUsername(friendId);
             friendsList.add(new Friend(friendId, username, false));
         }
+    }
+
+    private void fillInvitationsQueue() {
+        Integer[] prospectiveFriendsIds = getPendingInvitations(userId);
+        Collections.addAll(invitationsQueue, prospectiveFriendsIds);
+        removePendingInvitations(userId);
     }
 
     private void listen() {
@@ -51,15 +67,7 @@ class ClientApplication {
                 while (!Client.getInstance().isProgramClosed()) {
                     if (dataInputStream.available() > 0) {
                         int command = dataInputStream.readInt();
-                        if (command == MESSAGE) {
-                            receiveMessage(dataInputStream);
-                        }
-                        else if (command == FRIENDS_STATUSES) {
-                            updateFriendsStatus(dataInputStream);
-                        }
-                        else if (command == INVITATION) {
-                            receiveInvitation(dataInputStream);
-                        }
+                        executeCommand(command, dataInputStream);
                     }
                 }
                 disconnect();
@@ -71,11 +79,23 @@ class ClientApplication {
         listenThread.start();
     }
 
+    private void executeCommand(int command, DataInputStream dataInputStream) {
+        if (command == MESSAGE) {
+            receiveMessage(dataInputStream);
+        }
+        else if (command == FRIENDS_STATUSES) {
+            updateFriendsStatus(dataInputStream);
+        }
+        else if (command == INVITATION) {
+            receiveInvitation(dataInputStream);
+        }
+    }
+
     private void receiveMessage(DataInputStream dataInputStream) {
         try {
             int senderId = dataInputStream.readInt();
             String text = dataInputStream.readUTF();
-            messagesStack.push(new Message(senderId, text));
+            messagesQueue.add(new Message(senderId, text));
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -84,20 +104,20 @@ class ClientApplication {
 
     private void updateFriendsStatus(DataInputStream dataInputStream) {
         try {
-            for (int i = 0; i < friendsList.size(); ++i) {
-                friendsList.get(i).setActiveStatus(dataInputStream.readBoolean());
-                //System.out.println(friendsList.get(i).getLogin() + " - " + (friendsList.get(i).isActive() ? "online" : "offline"));
+            for (Friend friend : friendsList) {
+                friend.setActiveStatus(dataInputStream.readBoolean());
             }
         }
         catch (IOException e) {
             e.printStackTrace();
         }
+        friendsStatusesUpdateFlag = true;
     }
 
     private void receiveInvitation(DataInputStream dataInputStream) {
         try {
             int senderId = dataInputStream.readInt();
-            invitationsStack.push(senderId);
+            invitationsQueue.add(senderId);
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -107,17 +127,13 @@ class ClientApplication {
     private void checkFriendsStatuses() {
         Thread thread = new Thread(() -> {
             try {
-                Instant start = Instant.now();
+                Instant beginning = Instant.now();
                 DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
                 while (!Client.getInstance().isProgramClosed()) {
-                    Instant finish = Instant.now();
-                    if (Duration.between(start, finish).toMillis() > 15000) {
-                        dataOutputStream.writeInt(FRIENDS_STATUSES);
-                        dataOutputStream.writeInt(friendsList.size());
-                        for (int i = 0; i < friendsList.size(); ++i) {
-                            dataOutputStream.writeInt(friendsList.get(i).getId());
-                        }
-                        start = finish;
+                    Instant end = Instant.now();
+                    if (Duration.between(beginning, end).toMillis() > 15000) {
+                        sendFriendStatusesRequest(dataOutputStream);
+                        beginning = end;
                     }
                 }
             }
@@ -126,6 +142,14 @@ class ClientApplication {
             }
         });
         thread.start();
+    }
+
+    private void sendFriendStatusesRequest(DataOutputStream dataOutputStream) throws IOException {
+        dataOutputStream.writeInt(FRIENDS_STATUSES);
+        dataOutputStream.writeInt(friendsList.size());
+        for (Friend friend : friendsList) {
+            dataOutputStream.writeInt(friend.getId());
+        }
     }
 
     public void sendMessage(int id, String message) {
@@ -152,8 +176,7 @@ class ClientApplication {
     }
 
     private void disconnect() {
-        try {
-            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+        try (DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream())) {
             dataOutputStream.writeInt(DISCONNECT);
         }
         catch (IOException e) {
@@ -170,6 +193,18 @@ class ClientApplication {
         catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void updateFriendsList() {
+        fillFriendsList();
+    }
+
+    public void unsetUpdateFlag() {
+        friendsStatusesUpdateFlag = false;
+    }
+
+    public boolean areFriendsStatusesUpdated() {
+        return friendsStatusesUpdateFlag;
     }
 
     public int getUserId() {
@@ -198,20 +233,20 @@ class ClientApplication {
         return friendsList;
     }
 
-    public boolean containsMessage() {
-        return (!messagesStack.empty());
+    public boolean containsMessages() {
+        return (!messagesQueue.isEmpty());
     }
 
     public Message getMessage() {
-        return messagesStack.pop();
+        return messagesQueue.remove();
     }
 
-    public boolean constainsInvitation() {
-        return (!invitationsStack.empty());
+    public boolean containsInvitations() {
+        return (!invitationsQueue.isEmpty());
     }
 
     public int getInvitingUserId() {
-        return invitationsStack.pop();
+        return invitationsQueue.remove();
     }
 
     public Boolean[] getFriendsStatuses() {

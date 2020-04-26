@@ -51,16 +51,17 @@ public class ChatController {
     private int currentInterlocutorId;
     private int currentMessagesCounter = 0;
 
-
     @FXML
     public void initialize() {
-        int id = getId(Client.getInstance().getUsername());
-        clientApplication = new ClientApplication(id);
-        currentInterlocutorId = id;
-        initImages();
-        drawUserPanel();
+        if (clientApplication == null) {
+            int id = getId(Client.getInstance().getUsername());
+            clientApplication = new ClientApplication(id);
+            currentInterlocutorId = id;
+            checkForUpcomingContent();
+            initImages();
+            drawUserPanel();
+        }
         drawFriendsPanel();
-        checkForUpcomingContent();
     }
 
     @FXML
@@ -100,11 +101,6 @@ public class ChatController {
     }
 
     @FXML
-    private void test() {
-        clientApplication.sendTest();
-    }
-
-    @FXML
     private void showUsernameTextInputDialog() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Invite a friend");
@@ -113,11 +109,90 @@ public class ChatController {
         Optional<String> result = dialog.showAndWait();
         if (result.isPresent()) {
             String username = result.get();
-            handleInvitationUsername(username);
+            processInvitationAttempt(username);
         }
     }
 
-    private void handleInvitationUsername(String username) {
+    private void checkForUpcomingContent() {
+        Thread thread = new Thread(() -> {
+            while (!Client.getInstance().isProgramClosed()) {
+                if (inUse.compareAndSet(false, true)) {
+                    if (clientApplication.containsMessages()) {
+                        handleIncomingMessage();
+                    }
+                    if (clientApplication.containsInvitations()) {
+                        handleIncomingInvitation();
+                    }
+                    if (clientApplication.areFriendsStatusesUpdated()) {
+                        updateFriendsStatuses();
+                    }
+                    inUse.set(false);
+                }
+            }
+        });
+        thread.start();
+    }
+
+    private void handleIncomingMessage() {
+        Message message = clientApplication.getMessage();
+        if (message.isFromCurrentInterlocutor(currentInterlocutorId)) {
+            Platform.runLater(() -> drawMessageLabel(message.getMessage(), true));
+        }
+        else {
+            int index = clientApplication.getListIndex(message.getSenderId());
+            if (isProperIndex(index)) {
+                showNewMessageImage(index);
+            }
+        }
+    }
+
+    private void handleIncomingInvitation() {
+        int senderId = clientApplication.getInvitingUserId();
+        if (isAcceptingInvitation(getUsername(senderId))) {
+            insertNewFriendship(senderId, clientApplication.getUserId());
+            clientApplication.updateFriendsList();
+            Platform.runLater(this::initialize);
+        }
+    }
+
+    private boolean isAcceptingInvitation(String username) {
+        boolean result = false;
+        final FutureTask query = new FutureTask(() -> getUserAnswer(username));
+        Platform.runLater(query);
+        try {
+            result = (boolean) query.get();
+        }
+        catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    private boolean getUserAnswer(String username) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Invitation");
+        alert.setHeaderText("The user " + username + " has invited you to friends");
+        alert.setContentText("Do you want to accept the invitation");
+
+        ButtonType confirmationButton = new ButtonType("Yes");
+        ButtonType rejectionButton = new ButtonType("No");
+        alert.getButtonTypes().setAll(confirmationButton, rejectionButton);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.filter(buttonType -> (buttonType == confirmationButton)).isPresent();
+    }
+
+    private void updateFriendsStatuses() {
+        Boolean[] friendsStatuses = clientApplication.getFriendsStatuses();
+        for (int i = 0; i < friendsStatuses.length; ++i) {
+            ImageView statusIw = (ImageView) friendsPanes[i].lookup("#statusImg");
+            statusIw.setImage(friendsStatuses[i] ? images[2] : images[3]);
+        }
+
+        clientApplication.unsetUpdateFlag();
+    }
+
+    private void processInvitationAttempt(String username) {
         if (clientApplication.isAlreadyFriend(username)) {
             showAlreadyFriendDialog(username);
         }
@@ -184,51 +259,6 @@ public class ChatController {
         alert.showAndWait();
     }
 
-    private void checkForUpcomingContent() {
-        Thread thread = new Thread(() -> {
-            while (!Client.getInstance().isProgramClosed()) {
-                if (inUse.compareAndSet(false, true)) {
-                    if (clientApplication.containsMessage()) {
-                        Message message = clientApplication.getMessage();
-                        if (message.isFromCurrentInterlocutor(currentInterlocutorId)) {
-                            Platform.runLater(() -> {
-                                drawMessageLabel(message.getMessage(), true);
-                            });
-                        }
-                        else {
-                            int index = clientApplication.getListIndex(message.getSenderId());
-                            if (isProperIndex(index)) {
-                                showNewMessageImage(index);
-                            }
-                        }
-                    }
-                    if (clientApplication.constainsInvitation()) {
-                        int senderId = clientApplication.getInvitingUserId();
-                        if (isAcceptingInvitation(getUsername(senderId))) {
-                            insertNewFriendship(senderId, clientApplication.getUserId());
-                        }
-                    }
-                    updateFriendsStatuses();
-                    inUse.set(false);
-                }
-            }
-        });
-        thread.start();
-    }
-
-    private void showNewMessageImage(int index) {
-        ImageView iw = (ImageView) friendsPanes[index].lookup("#messageImg");
-        iw.setVisible(true);
-    }
-
-    private void updateFriendsStatuses() {
-        Boolean[] friendsStatuses = clientApplication.getFriendsStatuses();
-        for (int i = 0; i < friendsStatuses.length; ++i) {
-            ImageView statusIw = (ImageView) friendsPanes[i].lookup("#statusImg");
-            statusIw.setImage(friendsStatuses[i] ? images[2] : images[3]);
-        }
-    }
-
     private void initImages() {
         images = new Image[4];
         images[0] = new Image("file:images/new_message.png");
@@ -241,6 +271,11 @@ public class ChatController {
         ImageView userAvatar = getUserAvatar();
         friendsListPane.getChildren().add(userAvatar);
         usernameLabel.setText(Client.getInstance().getUsername());
+    }
+
+    private void showNewMessageImage(int index) {
+        ImageView iw = (ImageView) friendsPanes[index].lookup("#messageImg");
+        iw.setVisible(true);
     }
 
     private ImageView getUserAvatar() {
@@ -373,30 +408,8 @@ public class ChatController {
         messagesScrollPane.setVvalue(1.0);
     }
 
-    private boolean isAcceptingInvitation(String username) {
-        boolean result = false;
-        final FutureTask query = new FutureTask(() -> getUserAnswer(username));
-        Platform.runLater(query);
-        try {
-            result = (boolean) query.get();
-        }
-        catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
-
-    private boolean getUserAnswer(String username) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Invitation");
-        alert.setHeaderText("The user " + username + " has invited you to friends");
-        alert.setContentText("Do you want to accept the invitation");
-
-        ButtonType confirmationButton = new ButtonType("Yes");
-        ButtonType rejectionButton = new ButtonType("No");
-        alert.getButtonTypes().setAll(confirmationButton, rejectionButton);
-
-        Optional<ButtonType> result = alert.showAndWait();
-        return result.filter(buttonType -> (buttonType == confirmationButton)).isPresent();
+    @FXML
+    private void test() {
+        clientApplication.sendTest();
     }
 }
