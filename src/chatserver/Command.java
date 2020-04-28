@@ -7,5 +7,5 @@ class Command {
     public static final int DISCONNECT = 3;
     public static final int FRIENDS_STATUSES = 4;
     public static final int INVITATION = 5;
-    public static final int TEST = 6;
+    public static final int INVITATION_ACCEPTED = 6;
 }

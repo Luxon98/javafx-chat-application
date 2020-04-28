@@ -58,20 +58,8 @@ class Server {
             else if (command == INVITATION) {
                 sendInvitation(dataInputStream);
             }
-            else if (command == TEST) {             // do kasacji potem
-                System.out.println("Client #" + userId + " - test");
-                //sendMessage(userId, 2, "test");
-                ClientResource client = getClient(5);
-                if (client != null) {
-                    try {
-                        DataOutputStream dataOutputStream = new DataOutputStream(client.getOutputStream());
-                        dataOutputStream.writeInt(INVITATION);
-                        dataOutputStream.writeInt(4);
-                    }
-                    catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+            else if (command == INVITATION_ACCEPTED) {
+                sendInvitationAcceptedCommand(dataInputStream);
             }
             else if (command == DISCONNECT) {
                 disconnectClient();
@@ -87,9 +75,9 @@ class Server {
                     transferMessage(client, messageText);
                     //zapisz do bazy danych - false
                 }
-                else {
+                //else {
                     //zapisz do bazy danych - true
-                }
+                //}
                 System.out.println("Client #" + userId + " send: " + messageText + " to a client #" + receiverId);
             }
             catch (IOException e) {
@@ -181,6 +169,30 @@ class Server {
                 DataOutputStream dataOutputStream = new DataOutputStream(client.getOutputStream());
                 dataOutputStream.writeInt(INVITATION);
                 dataOutputStream.writeInt(userId);
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void sendInvitationAcceptedCommand(DataInputStream dataInputStream) {
+            try {
+                int receiverId = dataInputStream.readInt();
+                ClientResource client = getClient(receiverId);
+                if (client != null) {
+                    transferInvitationAcceptedCommand(client);
+                }
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void transferInvitationAcceptedCommand(ClientResource client) {
+            try {
+                DataOutputStream dataOutputStream = new DataOutputStream(client.getOutputStream());
+                dataOutputStream.writeInt(INVITATION_ACCEPTED);
+                System.out.println("Client #" + userId + " - 'InvitationAccepted' command send");
             }
             catch (IOException e) {
                 e.printStackTrace();
