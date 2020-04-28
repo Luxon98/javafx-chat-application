@@ -14,6 +14,7 @@ import static chatclient.DatabaseQueries.*;
 class ClientApplication {
     private int userId;
     private boolean friendsStatusesUpdateFlag = false;
+    private boolean invitationAcceptedFlag = false;
     private Socket socket;
     private List<Friend> friendsList;
     private Queue<Message> messagesQueue = new LinkedList<>();
@@ -88,6 +89,9 @@ class ClientApplication {
         }
         else if (command == INVITATION) {
             receiveInvitation(dataInputStream);
+        }
+        else if (command == INVITATION_ACCEPTED) {
+            invitationAcceptedFlag = true;
         }
     }
 
@@ -175,20 +179,20 @@ class ClientApplication {
         }
     }
 
-    private void disconnect() {
-        try (DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream())) {
-            dataOutputStream.writeInt(DISCONNECT);
+    public void sendInvitationAcceptedCommand(int id) {
+        try {
+            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            dataOutputStream.writeInt(INVITATION_ACCEPTED);
+            dataOutputStream.writeInt(id);
         }
         catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    // TO REMOVE
-    public void sendTest() {
-        try {
-            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-            dataOutputStream.writeInt(TEST);
+    private void disconnect() {
+        try (DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream())) {
+            dataOutputStream.writeInt(DISCONNECT);
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -205,6 +209,14 @@ class ClientApplication {
 
     public boolean areFriendsStatusesUpdated() {
         return friendsStatusesUpdateFlag;
+    }
+
+    public void unsetInvitationAcceptedFlag() {
+        invitationAcceptedFlag = false;
+    }
+
+    public boolean isInvitationAccepted() {
+        return invitationAcceptedFlag;
     }
 
     public int getUserId() {

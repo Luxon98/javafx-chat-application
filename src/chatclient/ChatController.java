@@ -27,10 +27,10 @@ public class ChatController {
     private Label usernameLabel;
 
     @FXML
-    private Label interlocutorLabel;
+    private Pane interlocutorPane;
 
     @FXML
-    private TextArea messageTextArea;
+    private Label interlocutorLabel;
 
     @FXML
     private Pane messagesPane;
@@ -40,6 +40,9 @@ public class ChatController {
 
     @FXML
     private Pane friendsListPane;
+
+    @FXML
+    private TextArea messageTextArea;
 
     @FXML
     private Button sendMessageButton;
@@ -57,7 +60,7 @@ public class ChatController {
             int id = getId(Client.getInstance().getUsername());
             clientApplication = new ClientApplication(id);
             currentInterlocutorId = id;
-            checkForUpcomingContent();
+            checkAndHandleUpcomingContent();
             initImages();
             drawUserPanel();
         }
@@ -113,24 +116,33 @@ public class ChatController {
         }
     }
 
-    private void checkForUpcomingContent() {
+    private void checkAndHandleUpcomingContent() {
         Thread thread = new Thread(() -> {
             while (!Client.getInstance().isProgramClosed()) {
                 if (inUse.compareAndSet(false, true)) {
-                    if (clientApplication.containsMessages()) {
-                        handleIncomingMessage();
-                    }
-                    if (clientApplication.containsInvitations()) {
-                        handleIncomingInvitation();
-                    }
-                    if (clientApplication.areFriendsStatusesUpdated()) {
-                        updateFriendsStatuses();
-                    }
+                    checkAndHandle();
                     inUse.set(false);
                 }
             }
         });
         thread.start();
+    }
+
+    private void checkAndHandle() {
+        if (clientApplication.containsMessages()) {
+            handleIncomingMessage();
+        }
+        if (clientApplication.containsInvitations()) {
+            handleIncomingInvitation();
+        }
+        if (clientApplication.areFriendsStatusesUpdated()) {
+            updateFriendsStatuses();
+        }
+        if (clientApplication.isInvitationAccepted()) {
+            clientApplication.updateFriendsList();
+            Platform.runLater(this::initialize);
+            clientApplication.unsetInvitationAcceptedFlag();
+        }
     }
 
     private void handleIncomingMessage() {
@@ -151,6 +163,7 @@ public class ChatController {
         if (isAcceptingInvitation(getUsername(senderId))) {
             insertNewFriendship(senderId, clientApplication.getUserId());
             clientApplication.updateFriendsList();
+            clientApplication.sendInvitationAcceptedCommand(senderId);
             Platform.runLater(this::initialize);
         }
     }
@@ -270,6 +283,11 @@ public class ChatController {
     private void drawUserPanel() {
         ImageView userAvatar = getUserAvatar();
         friendsListPane.getChildren().add(userAvatar);
+
+        ImageView userStatus = getStatusImage();
+        userStatus.setImage(images[2]);
+        friendsListPane.getChildren().add(userStatus);
+
         usernameLabel.setText(Client.getInstance().getUsername());
     }
 
@@ -301,10 +319,13 @@ public class ChatController {
             Label friendNameLabel = getFriendNameLabel(friend);
 
             addFriendPaneComponents(friendsPanes[index], new ImageView[]{messageImg, avatarImg, statusImg}, friendNameLabel);
-            setMouseClickEvent(friendsPanes[index], friendNameLabel, messageImg, friend.getId());
+            setMouseClickEvent(friendsPanes[index], friendNameLabel.getText(), new ImageView[]{messageImg, avatarImg, statusImg}, friend.getId());
 
             friendsListPane.getChildren().add(friendsPanes[index]);
-            positionY += 55;
+
+            if (positionY != 505) {
+                positionY += 55;
+            }
             ++index;
         }
     }
@@ -312,7 +333,7 @@ public class ChatController {
     private void setFriendPaneStyle(Pane friendPane, int y) {
         friendPane.setPrefSize(200, 55);
         friendPane.setLayoutY(y);
-        friendPane.setStyle("-fx-border-color: aliceblue; -fx-border-color: #a2a3a2; -fx-border-width: 0 0 1 0;");
+        friendPane.setStyle("-fx-border-color: #a2a3a2; -fx-border-width: 0 0 1 0;");
     }
 
     private ImageView getFriendAvatar() {
@@ -355,16 +376,31 @@ public class ChatController {
         pane.getChildren().add(friendNameLabel);
     }
 
-    private void setMouseClickEvent(Pane friendPane, Label friendNameLabel, ImageView messageImg, int id) {
+    private void setMouseClickEvent(Pane friendPane, String username, ImageView[] images, int id) {
         friendPane.setOnMouseClicked(t -> {
             if (currentInterlocutorId != id) {
-                interlocutorLabel.setText(friendNameLabel.getText());
+                addInterlocutorImages(images[1], images[2]);
+
+                interlocutorLabel.setText(username);
                 currentInterlocutorId = id;
                 removeMessages();
                 messagesPane.setPrefHeight(485);
-                messageImg.setVisible(false);
+                images[0].setVisible(false);
             }
         });
+    }
+
+    private void addInterlocutorImages(ImageView avatarImg, ImageView statusImg) {
+        ImageView interlocutorAvatarImg = new ImageView(avatarImg.getImage());
+        interlocutorAvatarImg.setX(33);
+        interlocutorAvatarImg.setY(13);
+        interlocutorPane.getChildren().add(interlocutorAvatarImg);
+
+        ImageView interlocutorStatusImg = new ImageView(statusImg.getImage());
+        interlocutorStatusImg.setX(56);
+        interlocutorStatusImg.setY(35);
+        interlocutorPane.getChildren().add(interlocutorStatusImg);
+        Label interlocutorLabelId = new Label();
     }
 
     private void removeMessages() {
@@ -406,10 +442,5 @@ public class ChatController {
     private void adjustMessagesPane() {
         messagesPane.setPrefHeight(messagesPane.getHeight() + 40);
         messagesScrollPane.setVvalue(1.0);
-    }
-
-    @FXML
-    private void test() {
-        clientApplication.sendTest();
     }
 }
