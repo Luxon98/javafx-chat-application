@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+
+<GridPane alignment="center" prefHeight="600.0" prefWidth="800.0" vgap="10"
+          xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="chatapplication.client.ChatController">
+    <Pane prefHeight="600.0" prefWidth="800.0" style="-fx-background-color: #e6f4f5;"
+          GridPane.columnIndex="2">
+        <Pane fx:id="userAndFriendsPane" prefHeight="600.0" prefWidth="200.0" style="-fx-background-color: #43425d;">
+            <Pane prefHeight="65.0" prefWidth="200.0"
+                  style="-fx-background-color: #3d3c57; -fx-border-color: #a69c9c; -fx-border-width: 0 0 1 0;">
+                <Label fx:id="usernameLabel" layoutX="59.0" layoutY="15.0" text="Nickname" textFill="WHITE"/>
+                <Button fx:id="addFriendButton" layoutX="75.0" layoutY="565.0" mnemonicParsing="false"
+                        onAction="#showUsernameTextInputDialog" onMouseEntered="#changeAddFriendButtonStyle"
+                        onMouseExited="#restoreAddFriendButtonStyle"
+                        style="-fx-background-color: #466163; -fx-background-radius: 10">
+                    <graphic>
+                        <ImageView fitHeight="21.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                            <Image url="@../../../../../images/add_friend_icon.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+                <Circle fx:id="userAvatarCircle" fill="#397cbc" layoutX="30.0" layoutY="27.0" radius="18.0"
+                        stroke="BLACK" strokeType="INSIDE" style="-fx-stroke: #00FFCD;"/>
+                <Button fx:id="optionsButton" layoutX="167.0" layoutY="14.0" mnemonicParsing="false"
+                        onAction="#showChooseAvatarTypeDialog"
+                        onMouseEntered="#changeOptionsButtonStyle"
+                        onMouseExited="#restoreOptionsButtonStyle"
+                        style="-fx-background-color: #3d3c57;">
+                    <graphic>
+                        <ImageView fitHeight="15" fitWidth="18" pickOnBounds="true" preserveRatio="true">
+                            <Image url="@../../../../../images/options1.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+            </Pane>
+            <Pane fx:id="friendsListPane" layoutY="65.0" prefHeight="495.0" prefWidth="200.0"/>
+        </Pane>
+        <Pane layoutX="200.0" prefHeight="600.0" prefWidth="600.0"
+              style="-fx-background-color: #e6f4f5;">
+            <TextArea fx:id="messageTextArea" layoutX="25.0" layoutY="562.0" onKeyPressed="#handleTextAreaKey"
+                      prefHeight="35.0" prefWidth="476.0">
+                <font>
+                    <Font size="12.0"/>
+                </font>
+            </TextArea>
+            <Button fx:id="sendMessageButton" layoutX="507.0" layoutY="562.5" mnemonicParsing="false"
+                    onAction="#sendMessage" onMouseEntered="#changeSendMessageButtonStyle"
+                    onMouseExited="#restoreSendMessageButtonStyle" prefHeight="30.0" prefWidth="60.0"
+                    style="-fx-background-color: #d63900; -fx-background-radius: 5">
+                <graphic>
+                    <ImageView fitHeight="23.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@../../../../../images/send_icon.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+            <ScrollPane fx:id="messagesScrollPane" fitToWidth="true" layoutY="65.0" prefHeight="485.0"
+                        prefWidth="600.0">
+                <Pane fx:id="messagesPane" layoutY="65.0" prefHeight="485.0" prefWidth="600.0"
+                      style="-fx-background-color: #e6f4f5;">
+                </Pane>
+            </ScrollPane>
+            <Pane fx:id="interlocutorPane" prefHeight="65.0" prefWidth="600.0"
+                  style="-fx-border-color: #a69c9c; -fx-border-width: 0 0 1 0;">
+                <Label fx:id="interlocutorLabel" layoutX="72.0" layoutY="15.0" textFill="#6b2424"/>
+            </Pane>
+        </Pane>
+    </Pane>
+</GridPane>

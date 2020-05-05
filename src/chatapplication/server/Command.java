@@ -1,0 +1,11 @@
+package chatapplication.server;
+
+
+class Command {
+    public static final int CONNECT = 1;
+    public static final int MESSAGE = 2;
+    public static final int DISCONNECT = 3;
+    public static final int FRIENDS_STATUSES = 4;
+    public static final int INVITATION = 5;
+    public static final int REDRAW_PANEL = 6;
+}

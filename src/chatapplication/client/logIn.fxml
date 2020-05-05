@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane fx:id="mainGridPane" alignment="center" prefHeight="600.0" prefWidth="600.0" vgap="10"
+          xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="chatapplication.client.LogInController">
+    <Pane fx:id="logInPane" prefHeight="600.0" prefWidth="600.0" style="-fx-background-color: #3c3f41;"
+          GridPane.columnIndex="2">
+        <Label fx:id="loginTitleLabel" layoutX="240.0" layoutY="95.0" minHeight="30" minWidth="30"
+               style="-fx-font-size: 33;" text="Log In" textFill="#c7d5da">
+        </Label>
+        <Label fx:id="loginTextLabel" layoutX="70.0" layoutY="209.0" prefHeight="26.0" prefWidth="58.0"
+               style="-fx-font-size: 16;" text="Login:" textFill="#e4e3ee">
+        </Label>
+        <Label fx:id="passwordTextLabel" layoutX="70.0" layoutY="262.0" style="-fx-font-size: 16;" text="Password:"
+               textFill="#dbdbe8"/>
+        <TextField fx:id="loginTextField" layoutX="205.0" layoutY="207.0" prefHeight="33.0" prefWidth="262.0"
+                   style="-fx-font-size: 17; -fx-background-color: #c4c4c4; -fx-text-fill: #6e1717;"/>
+        <PasswordField fx:id="passwordTextField" layoutX="205.0" layoutY="256.0" onKeyPressed="#handlePasswordFieldKey"
+                       prefHeight="33.0" prefWidth="262.0"
+                       style="-fx-font-size: 17; -fx-background-color: #c4c4c4; -fx-text-fill: #6e1717;"/>
+        <Button fx:id="loginButton" layoutX="370.0" layoutY="318.0" mnemonicParsing="false" onAction="#logIn"
+                onMouseEntered="#changeLoginButtonStyle" onMouseExited="#restoreLoginButtonStyle" prefHeight="26.0"
+                prefWidth="67.0"
+                style="-fx-background-color: #53adb5; -fx-font-size: 14; -fx-border-color: #3a3d39; -fx-background-radius: 9; -fx-border-radius: 9;"
+                text="Log In" textAlignment="CENTER" textFill="WHITE">
+            <effect>
+                <DropShadow height="71.09" radius="35.425" width="72.61"/>
+            </effect>
+        </Button>
+        <Button fx:id="newAccountButton" layoutX="125.0" layoutY="320.0" mnemonicParsing="false"
+                onAction="#setSignUpScene" onMouseEntered="#changeNewAccountButtonStyle"
+                onMouseExited="#restoreNewAccountButtonStyle"
+                style="-fx-background-color: #e89910; -fx-border-color: #3a3d39; -fx-background-radius: 8; -fx-border-radius: 8;"
+                text="Create New Account" textAlignment="CENTER">
+            <effect>
+                <InnerShadow/>
+            </effect>
+        </Button>
+    </Pane>
+</GridPane>
