@@ -1,11 +1,29 @@
 package chatapplication.client;
 
 
-class Command {
-    public static final int CONNECT = 1;
-    public static final int MESSAGE = 2;
-    public static final int DISCONNECT = 3;
-    public static final int FRIENDS_STATUSES = 4;
-    public static final int INVITATION = 5;
-    public static final int REDRAW_PANEL = 6;
+enum Command {
+    CONNECT(1),
+    MESSAGE(2),
+    DISCONNECT(3),
+    FRIENDS_STATUSES(4),
+    INVITATION(5),
+    REDRAW_PANEL(6);
+
+    int commandNumber;
+    private static Command[] integerValues = values();
+
+    private Command(int commandNumber) {
+        this.commandNumber = commandNumber;
+    }
+
+    public int getCommandNumber() {
+        return commandNumber;
+    }
+
+    public static Command fromInteger(int number) {
+        if (number > 0 && number <= 6) {
+            return integerValues[number - 1];
+        }
+        return null;
+    }
 }

@@ -38,7 +38,8 @@ class Server {
             try {
                 dataInputStream = new DataInputStream(clientSocket.getInputStream());
                 while (clientStatus) {
-                    int command = dataInputStream.readInt();
+                    int commandNumber = dataInputStream.readInt();
+                    Command command = Command.fromInteger(commandNumber);
                     executeCommand(command, dataInputStream);
                 }
             }
@@ -47,7 +48,7 @@ class Server {
             }
         }
 
-        private void executeCommand(int command, DataInputStream dataInputStream) {
+        private void executeCommand(Command command, DataInputStream dataInputStream) {
             if (command == MESSAGE) {
                 sendMessage(dataInputStream);
             }
@@ -84,7 +85,7 @@ class Server {
         private void transferMessage(ClientResource client, String message) {
             try {
                 DataOutputStream dataOutputStream = new DataOutputStream(client.getOutputStream());
-                dataOutputStream.writeInt(MESSAGE);
+                dataOutputStream.writeInt(MESSAGE.getCommandNumber());
                 dataOutputStream.writeInt(userId);
                 dataOutputStream.writeUTF(message);
             }
@@ -132,7 +133,7 @@ class Server {
         private void transferFriendsStatuses(boolean[] friendsStatuses) {
             try {
                 DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-                dataOutputStream.writeInt(FRIENDS_STATUSES);
+                dataOutputStream.writeInt(FRIENDS_STATUSES.getCommandNumber());
                 for (boolean b : friendsStatuses) {
                     dataOutputStream.writeBoolean(b);
                 }
@@ -160,7 +161,7 @@ class Server {
         private void transferInvitation(ClientResource client) {
             try {
                 DataOutputStream dataOutputStream = new DataOutputStream(client.getOutputStream());
-                dataOutputStream.writeInt(INVITATION);
+                dataOutputStream.writeInt(INVITATION.getCommandNumber());
                 dataOutputStream.writeInt(userId);
             }
             catch (IOException e) {
@@ -184,7 +185,7 @@ class Server {
         private void transferRedrawPanelCommand(ClientResource client) {
             try {
                 DataOutputStream dataOutputStream = new DataOutputStream(client.getOutputStream());
-                dataOutputStream.writeInt(REDRAW_PANEL);
+                dataOutputStream.writeInt(REDRAW_PANEL.getCommandNumber());
             }
             catch (IOException e) {
                 e.printStackTrace();
@@ -227,7 +228,8 @@ class Server {
                 Socket listeningSocket = serverSocket.accept();
 
                 DataInputStream dataInputStream = new DataInputStream(listeningSocket.getInputStream());
-                if (dataInputStream.readInt() == CONNECT) {
+                int commandNumber = dataInputStream.readInt();
+                if (Command.fromInteger(commandNumber) == CONNECT) {
                     int id = dataInputStream.readInt();
                     ClientThread clientThread = new ClientThread(id, listeningSocket);
                 }

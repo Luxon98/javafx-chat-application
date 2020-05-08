@@ -6,6 +6,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
+import static chatapplication.client.Command.*;
+
 
 class ClientApplication {
     private int userId;
@@ -32,7 +34,7 @@ class ClientApplication {
         try {
             socket = new Socket(ServerConnection.SERVER_ADDRESS, ServerConnection.SERVER_PORT);
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-            dataOutputStream.writeInt(Command.CONNECT);
+            dataOutputStream.writeInt(CONNECT.getCommandNumber());
             dataOutputStream.writeInt(userId);
             return true;
         }
@@ -63,7 +65,8 @@ class ClientApplication {
                 DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
                 while (!Client.getInstance().isProgramClosed()) {
                     if (dataInputStream.available() > 0) {
-                        int command = dataInputStream.readInt();
+                        int commandNumber = dataInputStream.readInt();
+                        Command command = Command.fromInteger(commandNumber);
                         executeCommand(command, dataInputStream);
                     }
                 }
@@ -76,7 +79,7 @@ class ClientApplication {
         listenThread.start();
     }
 
-    private void executeCommand(int command, DataInputStream dataInputStream) {
+    private void executeCommand(Command command, DataInputStream dataInputStream) {
         if (command == Command.MESSAGE) {
             receiveMessage(dataInputStream);
         }
@@ -145,7 +148,7 @@ class ClientApplication {
     }
 
     private void sendFriendStatusesRequest(DataOutputStream dataOutputStream) throws IOException {
-        dataOutputStream.writeInt(Command.FRIENDS_STATUSES);
+        dataOutputStream.writeInt(FRIENDS_STATUSES.getCommandNumber());
         dataOutputStream.writeInt(friendsList.size());
         for (Friend friend : friendsList) {
             dataOutputStream.writeInt(friend.getId());
@@ -155,7 +158,7 @@ class ClientApplication {
     public void sendMessage(int receiverId, String message) {
         try {
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-            dataOutputStream.writeInt(Command.MESSAGE);
+            dataOutputStream.writeInt(MESSAGE.getCommandNumber());
             dataOutputStream.writeInt(receiverId);
             dataOutputStream.writeUTF(message);
         }
@@ -167,7 +170,7 @@ class ClientApplication {
     public void sendInvitation(int receiverId) {
         try {
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-            dataOutputStream.writeInt(Command.INVITATION);
+            dataOutputStream.writeInt(INVITATION.getCommandNumber());
             dataOutputStream.writeInt(receiverId);
         }
         catch (IOException e) {
@@ -178,7 +181,7 @@ class ClientApplication {
     public void sendRedrawPanelCommand(int receiverId) {
         try {
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-            dataOutputStream.writeInt(Command.REDRAW_PANEL);
+            dataOutputStream.writeInt(REDRAW_PANEL.getCommandNumber());
             dataOutputStream.writeInt(receiverId);
         }
         catch (IOException e) {
@@ -188,7 +191,7 @@ class ClientApplication {
 
     private void disconnect() {
         try (DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream())) {
-            dataOutputStream.writeInt(Command.DISCONNECT);
+            dataOutputStream.writeInt(DISCONNECT.getCommandNumber());
         }
         catch (IOException e) {
             e.printStackTrace();
